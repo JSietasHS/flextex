@@ -183,14 +183,39 @@ def bevoelkerung(doc, year, populationofelevenyears):
 
 if __name__ == '__main__':
    
-
-    driver = webdriver.Chrome(r'C:\Program Files\Google\Chromedriver\chromedriver.exe')    
-    driver.close()
+    #set chromedriver Path
+    try:
+        driver = webdriver.Chrome(r'C:\Program Files\Google\Chromedriver\chromedriver.exe')
+        driver.close()
+    except:
+        driver = webdriver.Chrome()   
     
+    # variable deklaration
     year = 2018; 
     populationofelevenyears =  [89133, 88812, 88959, 89532, 90179, 90641, 91316, 93112, 94227, 95469, 96204]
     minpoulation = min(populationofelevenyears)
     maxpoulation = max(populationofelevenyears)
+    
+    directory = os.path.dirname(__file__) + '\\Sozialatlas_generated'
+    directoryabb1 = directory + '\\ABBILDUNGEN'
+    directoryabb2 = directoryabb1 + '\\Abbildungen'
+    
+    #### Create Folder######
+    try:
+        os.stat(directory)
+    except:
+        os.mkdir(directory) 
+    try:
+        os.stat(directoryabb1)
+    except:
+        os.mkdir(directoryabb1) 
+    try:
+        os.stat(directoryabb2)
+    except:
+        os.mkdir(directoryabb2) 
+    
+    #output Path of the tex data
+    os.chdir(path = directory )
     ######################################Create Diagrams
     
     #Create Population Chart of the last 11 years
@@ -200,16 +225,18 @@ if __name__ == '__main__':
     'population' :  populationofelevenyears,
     })
     populationchart = alt.Chart(population).mark_bar(size = 20, color='blue').encode(
-    alt.X('years'),
+    alt.X('years',
+          axis=alt.Axis(labels=False),
+          ),
     alt.Y('population',
+        axis=alt.Axis(labels=False),
         scale=alt.Scale(domain=(round(minpoulation*0.97), round(maxpoulation*1.03)))
-    ),
+        ),
     )
-    populationchart.save(r'Sozialatlas_generated/ABBILDUNGEN/Abbildungen/Bevölkerungsentwicklung '+ str(year-10) +' bis '+ str(year) +'.png')
+    populationchart.save(directoryabb2 + '\\Bevölkerungsentwicklung '+ str(year-10) +' bis '+ str(year) +'.png')
     
     
-    #output Path of the tex data
-    os.chdir(path='C:\\Users\sietas\.spyder-py3\Sozialatlas_generated')
+    
     
     # Main document
     ma = Document('main', documentclass="scrreprt",document_options="a4paper, 10.5pt, twoside", lmodern=False, textcomp=False,page_numbers=False )
