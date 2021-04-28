@@ -1,5 +1,5 @@
-from pylatex import Document, Section, Subsection, Command, Package, \
-    MultiRow, Tabular, MultiColumn
+from pylatex import Document, Section, Subsection, Command, Tabular, Package, \
+    MultiColumn, MultiRow
 from pylatex.utils import italic, NoEscape
 from pylatex.section import Chapter
 import  altair  as  alt 
@@ -136,16 +136,17 @@ def bevoelkerung(doc, year, populationofelevenyears):
             doc.append(NoEscape(r'    \label{tab:Tabelle_1}'))
             doc.append(NoEscape(r'\end{table}'))
             
-            table3 = Tabular('|c|c|c|')
-            table3.add_hline()
-            table3.add_row((MultiColumn(2, align='|c|',
-                                        data=MultiRow(2, data='multi-col-row')), 'X'))
-            table3.add_row((MultiColumn(2, align='|c|', data=''), 'X'))
-            table3.add_hline()
-            table3.add_row(('X', 'X', 'X'))
-            table3.add_hline()
+#            table3 = Tabular('|c|c|c|')
+#            table3.add_hline()
+#            table3.add_row((MultiColumn(2, align='|c|',
+#                                        data=MultiRow(2, data='multi-col-row')), 'X'))
+#            table3.add_row((MultiColumn(2, align='|c|', data=''), 'X'))
+#            table3.add_hline()
+#            table3.add_row(('X', 'X', 'X'))
+#            table3.add_hline()
+
             
-            doc.append(table3)
+#            doc.append(table3)
             
             doc.append(NoEscape(''))
             doc.append(NoEscape(''))
