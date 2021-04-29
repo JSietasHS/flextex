@@ -31,6 +31,7 @@ def latexmainstart(doc):
     doc.preamble.append(Package("xcolor"))
     doc.preamble.append(Package("fancyhdr"))
     doc.preamble.append(Package("marginnote"))
+    doc.preamble.append(Package("multirow"))
     doc.preamble.append(NoEscape(r"\let\oldfbox\fbox"))
     doc.preamble.append(NoEscape(r"\renewcommand\fbox[1]{\savenotes\oldfbox{#1}\spewnotes}"))
     doc.preamble.append(Package("geometry", "outer=6cm,inner=1.5cm,top=5cm, bottom=3cm"))
@@ -136,14 +137,14 @@ def bevoelkerung(doc, year, populationofelevenyears):
             doc.append(NoEscape(r'    \label{tab:Tabelle_1}'))
             doc.append(NoEscape(r'\end{table}'))
             
-#            table3 = Tabular('|c|c|c|')
-#            table3.add_hline()
-#            table3.add_row((MultiColumn(2, align='|c|',
-#                                        data=MultiRow(2, data='multi-col-row')), 'X'))
-#            table3.add_row((MultiColumn(2, align='|c|', data=''), 'X'))
-#            table3.add_hline()
-#            table3.add_row(('X', 'X', 'X'))
-#            table3.add_hline()
+            table3 = Tabular('|c|c|c|')
+            table3.add_hline()
+            table3.add_row((MultiColumn(2, align='|c|',
+                                       data=MultiRow(2, data='multi-col-row')), 'X'))
+            table3.add_row((MultiColumn(2, align='|c|', data=''), 'X'))
+            table3.add_hline()
+            table3.add_row(('X', 'X', 'X'))
+            table3.add_hline()
 
             
 #            doc.append(table3)
