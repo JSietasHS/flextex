@@ -1,5 +1,5 @@
-from pylatex import Document, Section, Subsection, Command, Tabular, Package, \
-    MultiColumn, MultiRow
+from pylatex import Document, Section, Subsection, Command, Package, \
+    MultiRow, Tabular, MultiColumn
 from pylatex.utils import italic, NoEscape
 from pylatex.section import Chapter
 import  altair  as  alt 
@@ -13,7 +13,47 @@ from altair_saver import save
 from selenium import webdriver
 
 
+#Create a Table out of a pandas Dataframe 
+#input  document
+#       dataframe: a pandas dataframe
+#       coloumnnames
+#       rownames
+#       headline colors
+#       coloumncolor
+#       coloumwithcolor list of integer #Paint the number of the coloumn in the 
+#                               coloumncolor default value all coloumns
+#       multirows # List of Triple [Rownumber,start coloumn, end coloumn]
+#                   rownumber start at 0 the row of the table
+#                   coloumnnumber start at 0 the start coloumn to connect coloumns
+#       multicoloumns # # List of Touple [start coloumn, end coloumn]            
+def createtable(doc, df):
+    c = '/'
+    i = 0    
+    #add package
+    doc.preamble.append(Package("multirow"))
+    
+    multirows = [[0,2,3][1,1,2]]
+    #Create coloumns      
+    while i in range(0,len(df.columns)):
+        c = c + 'c/'
+        i = i+1
+    print()
+    
+    table3 = Tabular(c)
+    for i in df.index:
+        values = []
+        for coloumn in df.columns:
+            values.append(df[coloumn][i])
+        table3.add_row(values)
+        table3.add_hline()
 
+    
+    #table3.add_row((MultiColumn(2, align='|c|',
+    #                           data=MultiRow(2, data='multi-col-row')), 'X'))
+    #table3.add_row((MultiColumn(2, align='|c|', data=''), 'X'))
+
+          
+    doc.append(table3)
 
 def latexmainstart(doc):
     
@@ -137,17 +177,11 @@ def bevoelkerung(doc, year, populationofelevenyears):
             doc.append(NoEscape(r'    \label{tab:Tabelle_1}'))
             doc.append(NoEscape(r'\end{table}'))
             
-            table3 = Tabular('|c|c|c|')
-            table3.add_hline()
-            table3.add_row((MultiColumn(2, align='|c|',
-                                       data=MultiRow(2, data='multi-col-row')), 'X'))
-            table3.add_row((MultiColumn(2, align='|c|', data=''), 'X'))
-            table3.add_hline()
-            table3.add_row(('X', 'X', 'X'))
-            table3.add_hline()
-
-            
-#            doc.append(table3)
+                #example dataframe
+            d = {'col1': [1, 2], 'col2': [3, 4], 'col3': [3, 4]}
+            df = pd.DataFrame(data=d)
+            df
+            createtable(doc,df)
             
             doc.append(NoEscape(''))
             doc.append(NoEscape(''))
@@ -190,7 +224,7 @@ if __name__ == '__main__':
         driver = webdriver.Chrome(r'C:\Program Files\Google\Chromedriver\chromedriver.exe')
         driver.close()
     except:
-        driver = webdriver.Chrome()   
+        driver = webdriver.Chrome()     
     
     # variable deklaration
     year = 2018; 
@@ -215,11 +249,14 @@ if __name__ == '__main__':
         os.stat(directoryabb2)
     except:
         os.mkdir(directoryabb2) 
+        
     
     #output Path of the tex data
     os.chdir(path = directory )
-    ######################################Create Diagrams
     
+    ######################################Create Diagrams
+    stringpath = directoryabb2 + '\\Bevölkerungsentwicklung '+ str(year-10) +' bis '+ str(year) +'.png'
+    print(stringpath)
     #Create Population Chart of the last 11 years
     x=list(range(year-10, year+1, 1))
     population  =  pd . DataFrame ({ 
