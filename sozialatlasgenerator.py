@@ -13,6 +13,30 @@ from altair_saver import save
 from selenium import webdriver
 
 
+#Rownumber - The row in which the multi row is 
+#start coloumn - the start coloumn to connect the row
+#end coloumn - the end coloumn to connect the row
+class MultiCol():
+    """A class that saves Values to define a Multicoloumn."""
+    
+    row = 0
+    startcoloumn = 0
+    endcoloumn = 0
+
+    def __init__(self, row, startcoloumn, endcoloumn):
+        self.row = row
+        self.startcoloumn = startcoloumn
+        self.endcoloumn = endcoloumn
+        
+    def get_row(self):
+        return self.row
+    
+    def get_startcoloumn(self):
+        return self.startcoloumn
+    
+    def get_endcoloumn(self):
+        return self.endcoloumn
+
 #Create a Table out of a pandas Dataframe 
 #input  document
 #       dataframe: a pandas dataframe
@@ -25,25 +49,30 @@ from selenium import webdriver
 #       multirows # List of Triple [Rownumber,start coloumn, end coloumn]
 #                   rownumber start at 0 the row of the table
 #                   coloumnnumber start at 0 the start coloumn to connect coloumns
-#       multicoloumns # # List of Touple [start coloumn, end coloumn]            
+#       multicoloumns # # List of Touple [Rownumber,start coloumn, end coloumn]          
 def createtable(doc, df):
     c = '/'
     i = 0    
     #add package
     doc.preamble.append(Package("multirow"))
     
-    multirows = [[0,2,3][1,1,2]]
+    multcoloumn = [[0,1,2][1,0,2]]
     #Create coloumns      
     while i in range(0,len(df.columns)):
         c = c + 'c/'
         i = i+1
-    print()
+        
+    #MultiRow(3, data='Multirow')
+    MultiColumn(4, align='|c|', data='Multicolumn')
+    print(multcoloumn)
     
     table3 = Tabular(c)
     for i in df.index:
         values = []
+        j=0
         for coloumn in df.columns:
             values.append(df[coloumn][i])
+            j=j+1
         table3.add_row(values)
         table3.add_hline()
 
