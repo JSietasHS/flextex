@@ -74,6 +74,7 @@ class Multirow():
 #                   coloumnnumber start at 0 the start coloumn to connect coloumns
 #       multicoloumns # # List of MultiCol elements to add multicoloumns          
 def createtable(doc, df, multcoloumn = None):
+    df = df.copy(deep=False) #create a copy of the dataframe
     c = '|' # create latex table coloumn string
     inverti = 0 # Invert counter to add data from a multicoloumn
     multicoloumnfound = False # termination condition
@@ -307,7 +308,7 @@ def bevoelkerung(doc, year, populationofelevenyears):
             df = pd.DataFrame(data=d)
             df
             createtable(doc,df)
-            
+            print(df)
             doc.append(NoEscape(''))
             doc.append(NoEscape(''))
             doc.append(NoEscape(''))
