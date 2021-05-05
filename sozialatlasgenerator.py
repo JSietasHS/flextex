@@ -49,29 +49,55 @@ class MultiCol():
 #       multirows # List of Triple [Rownumber,start coloumn, end coloumn]
 #                   rownumber start at 0 the row of the table
 #                   coloumnnumber start at 0 the start coloumn to connect coloumns
-#       multicoloumns # # List of Touple [Rownumber,start coloumn, end coloumn]          
-def createtable(doc, df):
-    c = '/'
-    i = 0    
+#       multicoloumns # # List of MultiCol elements to add multicoloumns          
+def createtable(doc, df, multcoloumn):
+    c = '/' # create latex table coloumn string
+    i = 0 # Loop counter
+    inverti = 0 # Invert counter to add data from a multicoloumn
+    multicoloumnfound = False # 
+    k = 0 # multicoloumncounter
+    j = 0 # rowcounter
+    i = 0 # coloumncounter
+    data = '' # data of a multicoloumn
     #add package
     doc.preamble.append(Package("multirow"))
-    
-    multcoloumn = [[0,1,2][1,0,2]]
+     
     #Create coloumns      
     while i in range(0,len(df.columns)):
         c = c + 'c/'
         i = i+1
-        
-    #MultiRow(3, data='Multirow')
-    MultiColumn(4, align='|c|', data='Multicolumn')
-    print(multcoloumn)
     
     table3 = Tabular(c)
+    #Iterate through rows
     for i in df.index:
         values = []
-        j=0
+        j = 0
+        mclmlength = 0
+        multicoloumnfound = True
+        data = ''
+        #iterate through coloumns
         for coloumn in df.columns:
-            values.append(df[coloumn][i])
+            k = 0
+            #check if there is a multicoloumn in the coloumn
+            while ((k < len(multcoloumn)) and (multicoloumnfound)):
+                mclm = multcoloumn[k]
+                k = k+1;
+                #if there is a multicoloumn set the length and a invertcounter
+                if ((mclm.get_row() == i) and (mclm.get_startcoloumn() == j)):
+                   mclmlength = mclm.get_endcoloumn()+1 - mclm.get_startcoloumn()
+                   inverti = mclmlength
+                   multicoloumnfound = False
+            #connect the rows for a multicoloumn or write the value to the table
+            if inverti > 0:
+                inverti = inverti - 1
+                data = data + str((df[coloumn][i]))
+                if inverti == 0:
+                    print('data:' + data)
+                    values.append(MultiColumn(mclmlength, align='|c|', data=data))
+                    data = ''
+                    mclmlength = 0
+            else:
+                values.append(df[coloumn][i])
             j=j+1
         table3.add_row(values)
         table3.add_hline()
