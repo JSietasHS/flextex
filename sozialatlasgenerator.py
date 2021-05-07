@@ -6,7 +6,6 @@ import  altair  as  alt
 import numpy as np
 import pandas as pd
 import os
-from vega_datasets import data
 
 from altair_saver import save
 
@@ -19,23 +18,37 @@ from selenium import webdriver
 class Multicol():
     """A class that saves Values to define a Multicoloumn."""
     
-    col = 0
-    startcoloumn = 0
-    endcoloumn = 0
+    row = 0
+    startcolumn = 0
+    endcolumn = 0
+    data = None
 
-    def __init__(self, col, startcoloumn, endcoloumn):
-        self.col = col
-        self.startcoloumn = startcoloumn
-        self.endcoloumn = endcoloumn
+    def __init__(self, row, startcolumn, endcolumn):
+        self.row = row
+        self.startcolumn = startcolumn
+        self.endcolumn = endcolumn
         
-    def get_col(self):
-        return self.col
+    def get_row(self):
+        return self.row
     
-    def get_startcoloumn(self):
-        return self.startcoloumn
+    def get_startcolumn(self):
+        return self.startcolumn
     
-    def get_endcoloumn(self):
-        return self.endcoloumn
+    def get_endcolumn(self):
+        return self.endcolumn
+    
+    def get_length(self):
+        return self.endcolumn +1 - self.startcolumn
+    
+    def get_data(self):
+        return self.data
+    
+    def set_data(self, data):
+        self.data = MultiColumn(self.get_length(), align='|c|', data=data)
+    
+    def checkMulticolInDF(self, row,column):
+
+        return ((row == self.get_row()) and (column == self.get_startcolumn()))
 
 #col - The coloumn in which the multi row start 
 #startrow - the start coloumn to connect the coloumns
@@ -43,23 +56,104 @@ class Multicol():
 class Multirow():
     """A class that saves Values to define a Multicoloumn."""
     
-    row = 0
+    column = 0
     startrow = 0
     endrow = 0
+    data = None
 
-    def __init__(self, row, startrow, endcrow):
-        self.row = row
+    def __init__(self, column, startrow, endrow):
+        self.column = column
         self.startrow = startrow
-        self.endcrow = endcrow
+        self.endrow = endrow
         
-    def get_row(self):
-        return self.row
+    def get_col(self):
+        return self.column
     
     def get_startrow(self):
         return self.startrow
     
     def get_endrow(self):
-        return self.endcrow
+        return self.endrow
+    
+    def get_data(self):
+        return self.data
+    
+    def set_data(self, data):
+        self.data = MultiRow(self.get_length(), data=data)
+    
+
+    def get_length(self):
+        return self.endrow +1 - self.startrow
+ 
+    def checkMultirowInDF(self, row,column):
+        return ((column == self.get_col()) and (row == self.get_startrow()))
+
+    
+def createtable2(doc, df):
+    dfcopy = df.copy(deep=False)
+    multcolumn = [Multicol(1,1,2)]
+    multrow = [Multirow(0,0,1)]
+    addmcol = None # add multicoloumn
+    addmrow = None # add multirow
+    values = []
+    i=0
+    c='|'
+    
+    all_columns = list(dfcopy) # Creates list of all column headers
+    dfcopy[all_columns] = dfcopy[all_columns].astype(str) #Set all coloumnsto String
+    
+    while i in range(0,len(df.columns)):
+        c = c + 'c|'
+        i = i+1
+        
+    table3 = Tabular(c)
+    for row in dfcopy.index:
+        print('row:' + str(row))
+        values = []
+        for columnind, column in enumerate(df.columns):
+            addmcol = None
+            addmrow = None
+            for mcol in multcolumn:
+                data = ''
+                if mcol.checkMulticolInDF(row,columnind):
+                    addmcol = mcol
+            for mrow in multrow:
+                if mrow.checkMultirowInDF(row,columnind):
+                    addmrow = mrow
+            if ((addmcol is not None) and (addmrow is not None)):
+                for i in range(0,addmrow.get_length()):
+                    for j in range(0,addmcol.get_length()):
+                        data = data + str(dfcopy.iat[row+j,columnind])
+                        dfcopy.iat[row+j,columnind] = None
+                    data = data + str(dfcopy.iat[row,columnind+i])
+                    dfcopy.iat[row,(columnind+i)] = None 
+                addmrow.set_data(data)
+                addmcol.set_data(addmrow.get_data())
+                values.append(addmcol.get_data())
+            elif (addmcol is not None):
+                for i in range(0,addmcol.get_length()):
+                    data = data + str(dfcopy.iat[row,columnind+i])
+                    dfcopy.iat[row,(columnind+i)] = None                 
+                addmcol.set_data(data) 
+                values.append(addmcol.get_data())
+            elif (addmrow is not None):
+                for i in range(0,addmrow.get_length()):
+                    data = data + str(dfcopy.iat[row+i,columnind])
+                    dfcopy.iat[row+i,columnind] = "" 
+                addmrow.set_data(data) 
+                values.append(addmrow.get_data())
+            elif ((addmcol is None) and (addmrow is None)):
+                if dfcopy.iat[row,columnind] is not None:
+                    values.append(dfcopy.iat[row,columnind])
+        print('Data:' + str(values))
+        table3.add_row(values)
+        table3.add_hline()
+                
+    print(dfcopy)
+    print('apptable')
+    doc.append(table3)
+                
+                
     
 #Create a Table out of a pandas Dataframe 
 #input  document
@@ -77,21 +171,22 @@ def createtable(doc, df, multcoloumn = None):
     df = df.copy(deep=False) #create a copy of the dataframe
     c = '|' # create latex table coloumn string
     inverti = 0 # Invert counter to add data from a multicoloumn
+    invertj = 0 
     multicoloumnfound = False # termination condition
     multirowfound = False # termination condition
-    mrowstart = None
     k = 0 # multicoloumncounter
     j = 0 # rowcounter
     i = 0 # coloumncounter
     l = 0
     m = 0
+    n = 0
     datamultcol = '' # data of a multicoloumn
     datamultrow = '' # data of a multicoloumn
     #add package
     
     #test
     multcoloumn = None
-    #multcoloumn = [Multicol(0,1,2)]
+    multcoloumn = [Multicol(1,1,2)]
     multrow = None
     multrow = [Multirow(0,0,1)]
     
@@ -113,23 +208,12 @@ def createtable(doc, df, multcoloumn = None):
         multirowfound = True
         datamultcol = ''
         datamultrow = ''
+        datamultcolrow = ''
+        data = ""
         k = 0
-        #Multirow
-        mrowstart = None
-        
-        l = 0
         m = 0
-        #check if there is a multicoloumn in the coloumnv
-        while ((l < len(multrow)) and (multirowfound)):
-            mrow = multrow[l]
-            l = l+1;
-            #if there is a multirow set the length, the start coloumn and a boolean
-            if (mrow.get_row() == i):
-               mrowlength = mrow.get_endrow()+1 - mrow.get_startrow()
-               mrowstart = mrow.get_startrow()
-               multirowfound = False
-               
-        #Multicloumn
+        l = 0
+        n = 0
         #iterate through coloumns
         for coloumn in df.columns:
             k = 0
@@ -143,35 +227,69 @@ def createtable(doc, df, multcoloumn = None):
                        mclmlength = mclm.get_endcoloumn()+1 - mclm.get_startcoloumn()
                        inverti = mclmlength
                        multicoloumnfound = False
+            if multrow is not None:
+                        #check if there is a multicoloumn in the coloumnv
+                while ((l < len(multrow)) and (multirowfound)):
+                    mrow = multrow[l]
+                    l = l+1;
+                    #if there is a multirow set the length, the start coloumn and a boolean
+                    if ((mrow.get_row() == i)) and (mrow.get_startrow() == j):
+                       mrowlength = mrow.get_endrow()+1 - mrow.get_startrow()
+                       invertj = mrowlength
+                       multirowfound = False
+
+            #append without multirow and multicoloumn
+
+                data = df[coloumn][i]
+        #Multicloumn
             
             #Mulirow found and multicoloumn not found
-            if (not(multirowfound)) and (multicoloumnfound) and (mrowstart == j):
+           #version1
+            #if invertj > 0:
+            #    invertj = invertj - 1
+            #    datamultrow = datamultrow + str((df[coloumn][i]))
+            #    if inverti == 0:
+            #        values.append(MultiColumn(MultiRow, data=datamultrow))
+            #        multirowfound = True
+            #        datamultrow = ''
+            #        mrowlength = 0
                 #add data
-                print("test")
+             #version2   
+            if (not(multirowfound)) and (multicoloumnfound):
                 for m in range(0,mrowlength):
                     datamultrow = datamultrow + str(df[coloumn][i+m])
                     df.loc[j+m,coloumn] = ''
-                values.append(MultiRow(mrowlength, data=datamultrow))
+                data = MultiRow(mrowlength, data=datamultrow)
                 multirowfound = True
                 mrowlength = 0
-            else:     
+                
                 #Multirowend
                 #connect the rows for a multicoloumn or write the value to the table
-                if inverti > 0:
-                    inverti = inverti - 1
-                    datamultcol = datamultcol + str((df[coloumn][i]))
-                    if inverti == 0:
-                        values.append(MultiColumn(mclmlength, align='|c|', data=datamultcol))
-                        datamultcol = ''
-                        mclmlength = 0
-                else:
-                    values.append(df[coloumn][i])
-                    print(str(values))
-                    
+            #if inverti > 0:
+            #    inverti = inverti - 1
+            #    datamultcol = datamultcol + str((df[coloumn][i]))
+            #    if inverti == 0:
+            #        data = MultiColumn(mclmlength, align='|c|', data=datamultcol)
+            #        multicoloumnfound = True
+            #        datamultcol = ''
+            #        mclmlength = 0
+            if (not(multicoloumnfound) and (multirowfound)):
+                for n in range(0,mclmlength):
+                    datamultcol = datamultcol + str(df.iat[i,j+n])
+                    #df.at[i,i+n] = ''
+                    print(df)
+                data = MultiColumn(mclmlength, align='|c|', data=datamultcol)
+                multicoloumnfound = True
+                mrowlength = 0
+
+            values.append(data)
+            data = ""            
             j=j+1
+        
         print('Data:' + str(values))
         table3.add_row(values)
         table3.add_hline()
+
 
     
     #table3.add_row((MultiColumn(2, align='|c|',
@@ -307,7 +425,7 @@ def bevoelkerung(doc, year, populationofelevenyears):
             d = {'col1': [1, 2], 'col2': [3, 4], 'col3': [3, 4]}
             df = pd.DataFrame(data=d)
             df
-            createtable(doc,df)
+            createtable2(doc,df)
             print(df)
             doc.append(NoEscape(''))
             doc.append(NoEscape(''))
@@ -344,6 +462,9 @@ def bevoelkerung(doc, year, populationofelevenyears):
 
 
 if __name__ == '__main__':
+    
+    t = [(3,4,5),(1,2,3)]
+
    
     #set chromedriver Path
     try:
