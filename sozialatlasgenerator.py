@@ -80,224 +80,128 @@ class Multirow():
     
     def set_data(self, data):
         self.data = MultiRow(self.get_length(), data=data)
-    
 
     def get_length(self):
         return self.endrow +1 - self.startrow
  
     def checkMultirowInDF(self, row,column):
         return ((column == self.get_col()) and (row == self.get_startrow()))
+    
+def getColorstringFromList(colorlist, checkvalue):
+    res = ""
+    if colorlist is not None:
+           for color in colorlist:
+               if color[0] == checkvalue and color[1] is not None and color[2] is not None :
+                   res = r"\cellcolor["+ str(color[1]) +"]{"+ str(color[2]) +"} "
+    return res
 
-    
-def createtable2(doc, df):
-    dfcopy = df.copy(deep=False)
-    multcolumn = [Multicol(1,1,2)]
-    multrow = [Multirow(0,0,1)]
-    addmcol = None # add multicoloumn
-    addmrow = None # add multirow
-    values = []
-    i=0
-    c='|'
-    
-    all_columns = list(dfcopy) # Creates list of all column headers
-    dfcopy[all_columns] = dfcopy[all_columns].astype(str) #Set all coloumnsto String
-    
-    while i in range(0,len(df.columns)):
-        c = c + 'c|'
-        i = i+1
-        
-    table3 = Tabular(c)
-    for row in dfcopy.index:
-        print('row:' + str(row))
-        values = []
-        for columnind, column in enumerate(df.columns):
-            addmcol = None
-            addmrow = None
-            for mcol in multcolumn:
-                data = ''
-                if mcol.checkMulticolInDF(row,columnind):
-                    addmcol = mcol
-            for mrow in multrow:
-                if mrow.checkMultirowInDF(row,columnind):
-                    addmrow = mrow
-            if ((addmcol is not None) and (addmrow is not None)):
-                for i in range(0,addmrow.get_length()):
-                    for j in range(0,addmcol.get_length()):
-                        data = data + str(dfcopy.iat[row+j,columnind])
-                        dfcopy.iat[row+j,columnind] = None
-                    data = data + str(dfcopy.iat[row,columnind+i])
-                    dfcopy.iat[row,(columnind+i)] = None 
-                addmrow.set_data(data)
-                addmcol.set_data(addmrow.get_data())
-                values.append(addmcol.get_data())
-            elif (addmcol is not None):
-                for i in range(0,addmcol.get_length()):
-                    data = data + str(dfcopy.iat[row,columnind+i])
-                    dfcopy.iat[row,(columnind+i)] = None                 
-                addmcol.set_data(data) 
-                values.append(addmcol.get_data())
-            elif (addmrow is not None):
-                for i in range(0,addmrow.get_length()):
-                    data = data + str(dfcopy.iat[row+i,columnind])
-                    dfcopy.iat[row+i,columnind] = "" 
-                addmrow.set_data(data) 
-                values.append(addmrow.get_data())
-            elif ((addmcol is None) and (addmrow is None)):
-                if dfcopy.iat[row,columnind] is not None:
-                    values.append(dfcopy.iat[row,columnind])
-        print('Data:' + str(values))
-        table3.add_row(values)
-        table3.add_hline()
-                
-    print(dfcopy)
-    print('apptable')
-    doc.append(table3)
-                
-                
-    
 #Create a Table out of a pandas Dataframe 
 #input  document
 #       dataframe: a pandas dataframe
-#       coloumnnames
-#       headline colors
-#       coloumncolor
+#       coloumncolor: List 
 #       coloumwithcolor list of integer #Paint the number of the coloumn in the 
 #                               coloumncolor default value all coloumns
 #       multirows # List of Triple [Rownumber,start coloumn, end coloumn]
 #                   rownumber start at 0 the row of the table
 #                   coloumnnumber start at 0 the start coloumn to connect coloumns
-#       multicoloumns # # List of MultiCol elements to add multicoloumns          
-def createtable(doc, df, multcoloumn = None):
-    df = df.copy(deep=False) #create a copy of the dataframe
-    c = '|' # create latex table coloumn string
-    inverti = 0 # Invert counter to add data from a multicoloumn
-    invertj = 0 
-    multicoloumnfound = False # termination condition
-    multirowfound = False # termination condition
-    k = 0 # multicoloumncounter
-    j = 0 # rowcounter
-    i = 0 # coloumncounter
-    l = 0
-    m = 0
-    n = 0
-    datamultcol = '' # data of a multicoloumn
-    datamultrow = '' # data of a multicoloumn
-    #add package
+#       multicoloumns # # List of MultiCol elements to add multicoloumns        
+def createtable(doc, df, multcolumn=None, multrow=None, columncolor = None, rowcolor=None):
+    dfcopy = df.copy(deep=False) #copy of the dataframe
+    #multcolumn = [Multicol(0,0,1)] #test
+    #multrow = [Multirow(0,0,1)] #test
+    #columncolor = [(1,"gray",0.8),(3,"gray",0.8)]
+    #rowcolor = [(1,"gray",0.8),(3,"gray",0.8)]
+    rowcellcolor = ""
+    columncellcolor = ""
+    addmcol = None # add multicoloumn
+    addmrow = None # add multirow
+    values = [] #add values to table
+    i=0 #counter
+    c='|' #coloumns
     
-    #test
-    multcoloumn = None
-    multcoloumn = [Multicol(1,1,2)]
-    multrow = None
-    multrow = [Multirow(0,0,1)]
+    all_columns = list(dfcopy) # Creates list of all column headers
+    dfcopy[all_columns] = dfcopy[all_columns].astype(str) #Set all coloumnsto String
     
-    
-    doc.preamble.append(Package("multirow"))
-     
-    #Create coloumns      
+    #create table coloumns
     while i in range(0,len(df.columns)):
         c = c + 'c|'
         i = i+1
-    
-    table3 = Tabular(c)
-    #Iterate through rows
-    for i in df.index:
-        values = []
-        j = 0
-        mclmlength = 0
-        multicoloumnfound = True
-        multirowfound = True
-        datamultcol = ''
-        datamultrow = ''
-        datamultcolrow = ''
-        data = ""
-        k = 0
-        m = 0
-        l = 0
-        n = 0
-        #iterate through coloumns
-        for coloumn in df.columns:
-            k = 0
-            #check if there is a multicoloumn in the coloumn # todo so geht nur eine multrow
-            if multcoloumn is not None:
-                while ((k < len(multcoloumn)) and (multicoloumnfound)):
-                    mclm = multcoloumn[k]
-                    k = k+1;
-                    #if there is a multicoloumn set the length and a invertcounter
-                    if ((mclm.get_col() == i) and (mclm.get_startcoloumn() == j)):
-                       mclmlength = mclm.get_endcoloumn()+1 - mclm.get_startcoloumn()
-                       inverti = mclmlength
-                       multicoloumnfound = False
-            if multrow is not None:
-                        #check if there is a multicoloumn in the coloumnv
-                while ((l < len(multrow)) and (multirowfound)):
-                    mrow = multrow[l]
-                    l = l+1;
-                    #if there is a multirow set the length, the start coloumn and a boolean
-                    if ((mrow.get_row() == i)) and (mrow.get_startrow() == j):
-                       mrowlength = mrow.get_endrow()+1 - mrow.get_startrow()
-                       invertj = mrowlength
-                       multirowfound = False
-
-            #append without multirow and multicoloumn
-
-                data = df[coloumn][i]
-        #Multicloumn
-            
-            #Mulirow found and multicoloumn not found
-           #version1
-            #if invertj > 0:
-            #    invertj = invertj - 1
-            #    datamultrow = datamultrow + str((df[coloumn][i]))
-            #    if inverti == 0:
-            #        values.append(MultiColumn(MultiRow, data=datamultrow))
-            #        multirowfound = True
-            #        datamultrow = ''
-            #        mrowlength = 0
-                #add data
-             #version2   
-            if (not(multirowfound)) and (multicoloumnfound):
-                for m in range(0,mrowlength):
-                    datamultrow = datamultrow + str(df[coloumn][i+m])
-                    df.loc[j+m,coloumn] = ''
-                data = MultiRow(mrowlength, data=datamultrow)
-                multirowfound = True
-                mrowlength = 0
-                
-                #Multirowend
-                #connect the rows for a multicoloumn or write the value to the table
-            #if inverti > 0:
-            #    inverti = inverti - 1
-            #    datamultcol = datamultcol + str((df[coloumn][i]))
-            #    if inverti == 0:
-            #        data = MultiColumn(mclmlength, align='|c|', data=datamultcol)
-            #        multicoloumnfound = True
-            #        datamultcol = ''
-            #        mclmlength = 0
-            if (not(multicoloumnfound) and (multirowfound)):
-                for n in range(0,mclmlength):
-                    datamultcol = datamultcol + str(df.iat[i,j+n])
-                    #df.at[i,i+n] = ''
-                    print(df)
-                data = MultiColumn(mclmlength, align='|c|', data=datamultcol)
-                multicoloumnfound = True
-                mrowlength = 0
-
-            values.append(data)
-            data = ""            
-            j=j+1
         
+    table3 = Tabular(c)
+    #iterate through rows
+    for row in dfcopy.index:
+        rowcellcolor = ""
+        #print('row:' + str(row))
+        values = []
+        #iterate through coloumns
+        rowcellcolor = getColorstringFromList(rowcolor,row)
+        for columnind, column in enumerate(df.columns):
+            addmcol = None
+            addmrow = None
+            cellcolor= ""
+            columncellcolor = ""
+            columncellcolor = getColorstringFromList(columncolor,columnind)
+            if columncellcolor == "" :
+                cellcolor = rowcellcolor
+            else:
+                cellcolor = columncellcolor
+            
+            if cellcolor != "":
+                 doc.preamble.append(Package("colortbl"))
+            
+            #check if multicoloumn is in cell
+            if multcolumn is not None:   
+                for mcol in multcolumn:
+                    data = ''
+                    if mcol.checkMulticolInDF(row,columnind):
+                        addmcol = mcol
+            #check multirow is in cell
+            if multrow is not None: 
+                for mrow in multrow:
+                    if mrow.checkMultirowInDF(row,columnind):
+                        addmrow = mrow
+            #appen multiolrow
+            if ((addmcol is not None) and (addmrow is not None)):
+                for i in range(0,addmrow.get_length()):
+                    for j in range(0,addmcol.get_length()):
+                        data = data + str(dfcopy.iat[row+i,columnind+j])
+                        if i > 0:
+                            dfcopy.iat[row+i,columnind+j] = "" 
+                        else:
+                            dfcopy.iat[row+i,columnind+j] = None 
+                addmrow.set_data(data)
+                addmcol.set_data(addmrow.get_data())
+                values.append(NoEscape(cellcolor + addmcol.get_data()))
+            #append multicol
+            elif (addmcol is not None):
+                for i in range(0,addmcol.get_length()):
+                    data = data + str(dfcopy.iat[row,columnind+i])
+                    dfcopy.iat[row,(columnind+i)] = None                 
+                addmcol.set_data(data) 
+                values.append(NoEscape(cellcolor + addmcol.get_data()))
+            #append miltirow
+            elif (addmrow is not None):
+                for i in range(0,addmrow.get_length()):
+                    data = data + str(dfcopy.iat[row+i,columnind])
+                    dfcopy.iat[row+i,columnind] = "" 
+                addmrow.set_data(data) 
+                values.append(NoEscape(cellcolor + addmrow.get_data()))
+            #append normal value
+            elif ((addmcol is None) and (addmrow is None)):
+                #Dont append None but append ''
+                if dfcopy.iat[row,columnind] is not None:
+                    values.append(NoEscape(cellcolor + dfcopy.iat[row,columnind]))
         print('Data:' + str(values))
         table3.add_row(values)
         table3.add_hline()
-
-
-    
-    #table3.add_row((MultiColumn(2, align='|c|',
-    #                           data=MultiRow(2, data='multi-col-row')), 'X'))
-    #table3.add_row((MultiColumn(2, align='|c|', data=''), 'X'))
-
-          
+                
+    print(dfcopy)
     doc.append(table3)
+                
+                
+    
+      
+
 
 def latexmainstart(doc):
     
@@ -425,7 +329,7 @@ def bevoelkerung(doc, year, populationofelevenyears):
             d = {'col1': [1, 2], 'col2': [3, 4], 'col3': [3, 4]}
             df = pd.DataFrame(data=d)
             df
-            createtable2(doc,df)
+            createtable(doc,df)
             print(df)
             doc.append(NoEscape(''))
             doc.append(NoEscape(''))
