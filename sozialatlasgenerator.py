@@ -203,82 +203,149 @@ def createtable(doc, df, multcolumn=None, multrow=None, columncolor = None, rowc
       
 
 
-def latexmainstart(doc):
+def latexmainstart(doc,year):
     
+    doc.preamble.append(Package("inputenc", "utf8"))
     doc.preamble.append(Package("babel", "ngerman"))
+    doc.preamble.append(Package("fontenc", "T1"))
+    doc.preamble.append(NoEscape(r"\renewcommand{\familydefault}{\sfdefault}"))
     doc.preamble.append(Package("helvet"))
     doc.preamble.append(Package("natbib"))
+    doc.preamble.append(Package("textpos"))
     doc.preamble.append(Package("graphicx"))
+    doc.preamble.append(Package("amsmath"))
     doc.preamble.append(Package("float"))
-    doc.preamble.append(NoEscape(r"\counterwithout{figure}{chapter}"))
-    doc.preamble.append(NoEscape(r"\counterwithout{table}{chapter}"))
-    doc.preamble.append(Package("caption", "justification=justified,singlelinecheck=false"))
-    doc.preamble.append(NoEscape(r"\renewcommand*{\thefigure}{\textbf{\arabic{figure}}}"))
-    doc.preamble.append(NoEscape(r"\renewcommand*{\thetable}{\textbf{\arabic{table}}}"))
+    doc.preamble.append(Package("etoolbox"))
+    
+    doc.preamble.append(Package("caption", "bf,justification=justified,singlelinecheck=false"))
+    #doc.preamble.append(NoEscape(r"\counterwithout{figure}{chapter}"))
+    #doc.preamble.append(NoEscape(r"\counterwithout{table}{chapter}"))
+    #doc.preamble.append(Package("caption", "justification=justified,singlelinecheck=false"))
+    #doc.preamble.append(NoEscape(r"\renewcommand*{\thefigure}{\textbf{\arabic{figure}}}"))
+    #doc.preamble.append(NoEscape(r"\renewcommand*{\thetable}{\textbf{\arabic{table}}}"))
+    
     doc.preamble.append(Package("adjustbox", "export"))
     doc.preamble.append(Package("xcolor"))
     doc.preamble.append(Package("fancyhdr"))
     doc.preamble.append(Package("marginnote"))
+    
+    doc.preamble.append(Package("geometry", "a4paper,outer=5cm,inner=1.5cm,top=2cm, bottom=3cm"))
+    doc.preamble.append(Package("footnote"))
+    
     doc.preamble.append(Package("multirow"))
+    
     doc.preamble.append(NoEscape(r"\let\oldfbox\fbox"))
     doc.preamble.append(NoEscape(r"\renewcommand\fbox[1]{\savenotes\oldfbox{#1}\spewnotes}"))
-    doc.preamble.append(Package("geometry", "outer=6cm,inner=1.5cm,top=5cm, bottom=3cm"))
-    doc.preamble.append(Package("footnote"))
     doc.preamble.append(Package("pdfpages"))
-    doc.preamble.append(Package("tocloft"))
-    doc.preamble.append(NoEscape(r"\renewcommand{\cftfigpresnum}{\textbf{Abb. }}"))
-    doc.preamble.append(NoEscape(r"\renewcommand{\cfttabpresnum}{\textbf{Tab. }}"))
-    doc.preamble.append(NoEscape(r"\renewcommand{\cftfigaftersnum}{:}"))
-    doc.preamble.append(NoEscape(r"\renewcommand{\cfttabaftersnum}{:}"))
-    doc.preamble.append(NoEscape(r"\setlength{\cftfignumwidth}{2cm}"))
-    doc.preamble.append(NoEscape(r"\setlength{\cfttabnumwidth}{2cm}"))
-    doc.preamble.append(NoEscape(r"\setlength{\cftfigindent}{0cm}"))
-    doc.preamble.append(NoEscape(r"\setlength{\cfttabindent}{0cm}"))
-    doc.preamble.append(NoEscape(r"\pagestyle{fancy}"))
-    doc.preamble.append(NoEscape(r"\addtolength{\headwidth}{\marginparsep}"))
-    doc.preamble.append(NoEscape(r"\addtolength{\headwidth}{\marginparwidth}"))
-    doc.preamble.append(NoEscape(r"\fancyhead[RE,LO]{\textbf{Sozialatlas 2019}}"))
+    
+    doc.preamble.append(Package("parskip"))
+    doc.preamble.append(Package("expl3"))
+    doc.preamble.append(Package("afterpage"))
+    doc.preamble.append(Package("wrapfig"))
+    
+    #Caption Paket
+    #Customizing der Bild und Tabellencaptions (Einige Zusatzbefehle befinden sich als Parameter im usepackage Caption Bereich
+    doc.preamble.append(NoEscape(r"\DeclareCaptionLabelFormat{meinLabel}{#1#2\hspace{1.5ex}}"))
+    doc.preamble.append(NoEscape(r"\captionsetup[table]{labelformat=meinLabel,labelsep=space}"))
+    doc.preamble.append(NoEscape(r"\captionsetup[figure]{labelformat=meinLabel,labelsep=space}"))
+    
+    doc.preamble.append(NoEscape(r"\renewcommand{\figurename}{\textbf{Abb.}}"))
+    doc.preamble.append(NoEscape(r"\renewcommand{\tablename}{\textbf{Tab.}}"))
+    
+    #ListofFigures & ListofTables Zahleneinträge werden fettgedruckt
+
+#    doc.preamble.append(NoEscape(r"\ExplSyntaxOn"))
+#    doc.preamble.append(NoEscape(r"   \clist_map_inline:nn"))
+#    doc.preamble.append(NoEscape(r"     {figure,table}"))
+#    doc.preamble.append(NoEscape(r"     {\DeclareTOCStyleEntry["))
+#    doc.preamble.append(NoEscape(r"       pagenumberformat=\bfseries"))
+#    doc.preamble.append(NoEscape(r"       entryformat=\bfseries"))
+#    doc.preamble.append(NoEscape(r"       ]{section}{#1}"))
+#    doc.preamble.append(NoEscape(r"     }"))
+#    doc.preamble.append(NoEscape(r" \ExplSyntaxOff"))
+
+
+ 
+ #Spacing vor neuen Chaptern entfernen
+#\renewcommand*{\chapterheadstartvskip}{\vspace*{0cm}}
+
+    doc.preamble.append(NoEscape(r"\RedeclareSectionCommand["))
+    doc.preamble.append(NoEscape(r"  beforeskip=0pt,"))
+    doc.preamble.append(NoEscape(r"  afterskip=\baselineskip,"))
+    doc.preamble.append(NoEscape(r"  afterindent=false"))
+    doc.preamble.append(NoEscape(r"  ]{chapter}"))
+    doc.preamble.append(NoEscape(r"\counterwithout{figure}{chapter}"))
+    doc.preamble.append(NoEscape(r"\counterwithout{table}{chapter}"))
+    
+    #Farben Colorbox
+    doc.preamble.append(NoEscape(r"\definecolor{PaleAqua}{rgb}{0.74, 0.83, 0.9}")) 
+    doc.preamble.append(NoEscape(r"\definecolor{LightBlue}{RGB}{217,226,238}"))  
+    #Fancyhdr-Package genutzt zur Nutzung muss Pagestyle auf "Fancy" geändert werden die vorangestellten Buchstaben gelten der Platzierung, für eine individuelle Kopf- und Fußzeile im Dokument 
+    doc.preamble.append(NoEscape(r"\pagestyle{fancy}")) 
+    doc.preamble.append(NoEscape(r"\addtolength{\headwidth}{\marginparsep}")) 
+    doc.preamble.append(NoEscape(r"\addtolength{\headwidth}{\marginparwidth}")) 
+    doc.preamble.append(NoEscape(r"\fancyhead[RE,LO]{\textbf{Sozialatlas "+str(year)+"}}"))
     doc.preamble.append(NoEscape(r"\fancyhead[LE,RO]{\includegraphics[scale=0.5]{ABBILDUNGEN/Abbildungen/Logo Stadt Flensburg.png}}"))
     doc.preamble.append(NoEscape(r"\fancyfoot[CE,CO]{}"))
     doc.preamble.append(NoEscape(r"\fancyfoot[LE,RO]{\thepage}"))
+    
     doc.preamble.append(NoEscape(r"\renewcommand{\footrulewidth}{1pt}"))
-    doc.preamble.append(NoEscape(r"\marginparwidth=5cm"))
-    doc.preamble.append(NoEscape(r"\setlength{\parindent}{0pt}"))
-#    doc.append(NoEscape(r"\includepdf[pages={1}]{ABBILDUNGEN/Deckblatt Sozialatlas 2019.pdf}"))
-    doc.append(NoEscape(r"\renewcommand{\figurename}{\textbf{Abb.}}"))
-    doc.append(NoEscape(r"\renewcommand{\tablename}{\textbf{Tab.}}")) 
+    # Header u. Footer auch auf Chapter Pages anzeigen
+    #Ändert das Pagestyle Argument auf fancyhdr in KOMA Klasse sccreprt (Etoolbox Package benötigt)
+    doc.preamble.append(NoEscape(r"\renewcommand{\chapterpagestyle}{fancy}")) 
+    #Fügt eine Leerzeile zwischen Überschriften/Absätzen dazu
+    doc.preamble.append(NoEscape(r"\setlength{\parindent}{0pt}")) 
+    
+    doc.preamble.append(NoEscape(r"\raggedbottom"))
+    
+    
+    #doc.append(NoEscape(r"\includepdf[pages={1}]{ABBILDUNGEN/Deckblatt Sozialatlas.pdf}"))
+
     doc.append(NoEscape(r"\thispagestyle{empty}")) 
 #    doc.append(NoEscape(r"\include{0_Impressum}")) 
-    doc.append(NoEscape(r"\newpage")) 
-    doc.append(NoEscape(r"\pagestyle{fancy}")) 
-    doc.append(NoEscape(r"\pagestyle{fancy}")) 
-#    doc.append(NoEscape(r"\include{0_Vorwort}")) 
+    doc.append(NoEscape(r"\thispagestyle{empty}")) 
+#    doc.append(NoEscape(r"\include{0_Einleitung}")) 
+
+#%%%% Fancyhdr zum Inhaltsverzeichnis,ListofTables und ListofFigures hinzufügen
+    doc.append(NoEscape(r"\addtocontents{toc}{\protect\thispagestyle{fancy}}")) 
+    doc.append(NoEscape(r"\addtocontents{lot}{\protect\thispagestyle{fancy}}")) 
+    doc.append(NoEscape(r"\addtocontents{lof}{\protect\thispagestyle{fancy}}")) 
+    doc.append(NoEscape(r"\tableofcontents")) 
+    
+    doc.append(NoEscape(r"\tableofcontents")) 
+#%%%%% Seitennummerierung für Inhaltsverzeichnis romanisch
+    doc.append(NoEscape(r"\pagenumbering{arabic}")) 
+    
+#    doc.append(NoEscape(r"\include{0_Einleitung}"))
+    
+    doc.append(NoEscape(r"\addcontentsline{toc}{chapter}{Zusammenfassung}")) 
+    
 #    doc.append(NoEscape(r"\include{0_Zusammenfassung}"))
-#    modularization with include didn't work 
 #    doc.append(NoEscape(r"\include{1Bevoelkerung}")) 
 
 #    doc.append(NoEscape(r"\include{2_ArbeitsmarktundBeschäftigung}")) 
 #    doc.append(NoEscape(r"\include{3_Wohnen}")) 
 #    doc.append(NoEscape(r"\include{4_SozialeSicherung}")) 
 #    doc.append(NoEscape(r"\include{5_HilfenzurErziehung}")) 
-    doc.append(NoEscape(r"\newgeometry{outer=2cm,inner=1.5cm}")) 
+#    doc.append(NoEscape(r"\input{6_ÜbersichtüberdieStadtteile}")) 
+    doc.append(NoEscape(r"\newgeometry{left=2cm,right=2cm,top=2cm,bottom=3cm}")) 
 #    doc.append(NoEscape(r"\include{6_ÜbersichtüberdieStadtteile}")) 
+    doc.append(NoEscape(r"\listoffigures")) 
+    doc.append(NoEscape(r"\addcontentsline{toc}{chapter}{\listfigurename}")) 
+    doc.append(NoEscape(r"\thispagestyle{empty}")) 
+    doc.append(NoEscape(r"\newpage")) 
+    doc.append(NoEscape(r"\listoftables")) 
+    doc.append(NoEscape(r"\addcontentsline{toc}{chapter}{\listtablename}")) 
+    doc.append(NoEscape(r"\thispagestyle{empty}"))         
 
-def latexmainend(doc):
-    
-    doc.append(NoEscape(r"\addcontentsline{toc}{chapter}{Übersicht über die Stadtteile}")) 
-    doc.append(NoEscape(r"\begingroup")) 
-    doc.append(NoEscape(r"	\renewcommand*{\addvspace}[1]{}")) 
-    doc.append(NoEscape(r"	\phantomsection")) 
-    doc.append(NoEscape(r"	\addcontentsline{toc}{chapter}{\listfigurename}")) 
-    doc.append(NoEscape(r"	\listoffigures")) 
-    doc.append(NoEscape(r"	\newpage")) 
-    doc.append(NoEscape(r"	\phantomsection")) 
-    doc.append(NoEscape(r"	\addcontentsline{toc}{chapter}{\listtablename}")) 
-    doc.append(NoEscape(r"	\listoftables")) 
-    doc.append(NoEscape(r"\endgroup"))    
-    
-        
+
+
+
+
+
+
+
+
 
 def bevoelkerung(doc, year, populationofelevenyears):
     """Add a section, a subsection and some text to the document.
@@ -429,10 +496,9 @@ if __name__ == '__main__':
     
     
     # Main document
-    ma = Document('main', documentclass="scrreprt",document_options="a4paper, 10.5pt, twoside", lmodern=False, textcomp=False,page_numbers=False )
-    latexmainstart(ma)
+    ma = Document('main', documentclass="scrreprt",document_options="a4paper, 10.5pt, twoside, listof=entryprefix", lmodern=False, textcomp=False,page_numbers=False )
+    latexmainstart(ma,year)
     bevoelkerung(ma,year,populationofelevenyears)
-    latexmainend(ma)
     ma.generate_tex()  
     
     # modularization with include didn't work
@@ -442,7 +508,7 @@ if __name__ == '__main__':
     #bev.generate_tex()    
     
     
-    #doc.generate_pdf(clean_tex=False)
+    #ma.generate_pdf(clean_tex=False, compiler='pdflatex')
     
 
     # Document with `\maketitle` command activated
