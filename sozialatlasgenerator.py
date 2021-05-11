@@ -285,7 +285,7 @@ def latexmainstart(doc,year):
     doc.preamble.append(NoEscape(r"\addtolength{\headwidth}{\marginparsep}")) 
     doc.preamble.append(NoEscape(r"\addtolength{\headwidth}{\marginparwidth}")) 
     doc.preamble.append(NoEscape(r"\fancyhead[RE,LO]{\textbf{Sozialatlas "+str(year)+"}}"))
-    doc.preamble.append(NoEscape(r"\fancyhead[LE,RO]{\includegraphics[scale=0.5]{ABBILDUNGEN/Abbildungen/Logo Stadt Flensburg.png}}"))
+    doc.preamble.append(NoEscape(r"\fancyhead[LE,RO]{\includegraphics[scale=0.5]{ABBILDUNGEN/Logo_Stadt_Flensburg.png}}"))
     doc.preamble.append(NoEscape(r"\fancyfoot[CE,CO]{}"))
     doc.preamble.append(NoEscape(r"\fancyfoot[LE,RO]{\thepage}"))
     
@@ -357,7 +357,6 @@ def einleitung(doc, year):
      doc.append(NoEscape(r"\marginnote{\emph{sozialversicherungspflichtige Beschäftigung und Arbeitslosigkeit}}[0.25cm]"))
      doc.append(NoEscape(r'\\'))
      doc.append(NoEscape(r"\emph{Kleinräumige Daten sind für die Themen Arbeitslosigkeit und sozialversicherungspflichtig Beschäftigte verfügbar. Datengrundlage ist die Statistik der Bundesagentur für Arbeit.}"))
-     doc.append(NoEscape(r'\\'))
      doc.append(NoEscape(r"\newpage"))
      doc.append(NoEscape(''))
      doc.append(NoEscape(r"\textbf{\emph{Wohnen}}"))
@@ -399,9 +398,11 @@ def impressum(doc):
     doc.append(NoEscape(r'Fachbereich Soziales und Gesundheit \newline'))
     doc.append(NoEscape(r'Rathausplatz 1 \par'))
     doc.append(NoEscape(r'24937 Flensburg \par'))
-    doc.append(NoEscape(r'Telefon: 0461 85-1241\newline'))
+    doc.append(NoEscape(r'Telefon: 0461 85-1241'))
     doc.append(NoEscape(r'\\'))
-    doc.append(NoEscape(r'Stand: ' + str(d1) + ' \newline'))
+    doc.append(NoEscape(r'\\'))
+    doc.append(NoEscape(r'Stand: ' + str(d1) ))
+    doc.append(NoEscape(r'\\'))
     doc.append(NoEscape(r'\\'))
     doc.append(NoEscape(r'\\'))
     doc.append(NoEscape(r'\\'))
@@ -433,10 +434,8 @@ def vorwort(doc, year):
     doc.append(NoEscape(r'Flensburg, November '+ str(year)))
     doc.append(NoEscape(r'\\'))
     doc.append(NoEscape(r'\begin{figure}[H]'))
-    doc.append(NoEscape(r'\\'))
     doc.append(NoEscape(r' \includegraphics[scale=0.25]{ABBILDUNGEN/Unterschrift_Dezernentin_KWN.png}'))
     doc.append(NoEscape(r'\end{figure}'))
-    doc.append(NoEscape(r'\\'))
     doc.append(NoEscape(r'Karen Welz-Nettlau,'))
     doc.append(NoEscape(r'Dezernentin für Jugend, Soziales, Gesundheit und Zentrale Dienste'))
     doc.append(NoEscape(r'\\'))
@@ -488,11 +487,11 @@ def bevoelkerung(doc, year, populationofelevenyears):
             doc.append(NoEscape(r'\marginnote{\emph{Zunahme der Bevölkerung in fast allen Stadtteilen}}[0cm]'))
             doc.append(NoEscape(r'Die Bevölkerungsentwicklung verläuft im Zehnjahresvergleich in fast allen Stadtteilen positiv (vgl. Tab 1 und Abb. 2), wenn sich auch große Unterschiede hinsichtlich der Intensität des Wachstums zeigen. In der Nordstadt, Weiche und Tarup sind deutlich mehr Personen mit Hauptwohnsitz gemeldet als vor zehn Jahren (Zuwachs um jeweils mehr als 1.000 Einwohner). Mit Ausnahme von Engelsby hat die Bevölkerung auch in allen anderen Stadtteilen zugenommen. Im Vergleich zum Vorjahr hat der Friesische Berg 160 EinwohnerInnen verloren, in Engelsby gab es hingegen einen Zuwachs um 31 Personen.'))
             
-            doc.append(NoEscape(r'\begin{table}[htbp]'))
-            doc.append(NoEscape(r'    \caption{\textbf{EinwohnerInnen in den Stadtteilen 2008 bis 2018*.}}'))
-            doc.append(NoEscape(r'    \includegraphics[width=\textwidth]{TABELLEN/Tabellen/EinwohnerInnen in den Stadtteilen 2008 bis 2018.png}'))
-            doc.append(NoEscape(r'    \label{tab:Tabelle_1}'))
-            doc.append(NoEscape(r'\end{table}'))
+#            doc.append(NoEscape(r'\begin{table}[htbp]'))
+#            doc.append(NoEscape(r'    \caption{\textbf{EinwohnerInnen in den Stadtteilen 2008 bis 2018*.}}'))
+#            doc.append(NoEscape(r'    \includegraphics[width=\textwidth]{TABELLEN/Tabellen/EinwohnerInnen in den Stadtteilen 2008 bis 2018.png}'))
+#            doc.append(NoEscape(r'    \label{tab:Tabelle_1}'))
+#            doc.append(NoEscape(r'\end{table}'))
             
                 #example dataframe
             d = {'col1': [1, 2], 'col2': [3, 4], 'col3': [3, 4]}
@@ -610,15 +609,14 @@ if __name__ == '__main__':
 #    doc.append(NoEscape(r"\include{0_Vorwort}")) 
     vorwort(ma,year)
 
-    
-#%%%% Fancyhdr zum Inhaltsverzeichnis,ListofTables und ListofFigures hinzufügen
+        
+    # Fancyhdr zum Inhaltsverzeichnis,ListofTables und ListofFigures hinzufügen
     ma.append(NoEscape(r"\addtocontents{toc}{\protect\thispagestyle{fancy}}")) 
     ma.append(NoEscape(r"\addtocontents{lot}{\protect\thispagestyle{fancy}}")) 
     ma.append(NoEscape(r"\addtocontents{lof}{\protect\thispagestyle{fancy}}")) 
     ma.append(NoEscape(r"\tableofcontents")) 
     
-    ma.append(NoEscape(r"\tableofcontents")) 
-#%%%%% Seitennummerierung für Inhaltsverzeichnis romanisch
+    # Seitennummerierung für Inhaltsverzeichnis romanisch
     ma.append(NoEscape(r"\pagenumbering{arabic}")) 
     
 #    doc.append(NoEscape(r"\include{0_Einleitung}"))
