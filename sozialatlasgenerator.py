@@ -191,13 +191,12 @@ def createtable(doc, df, multcolumn=None, multrow=None, columncolor = None, rowc
                 #Dont append None but append ''
                 if dfcopy.iat[row,columnind] is not None:
                     values.append(NoEscape(cellcolor + dfcopy.iat[row,columnind]))
-        print('Data:' + str(values))
+        #print('Data:' + str(values))
         table3.add_row(values)
         table3.add_hline()
                 
-    print(dfcopy)
+    #print(dfcopy)
     doc.append(table3)
-                
                 
     
       
@@ -446,9 +445,10 @@ def vorwort(doc, year):
     
 def zusammenfassung(doc):
     doc.append(NoEscape(r'\textbf{\large{Zusammenfassung}}'))
+    
 
 
-def bevoelkerung(doc, year, populationofelevenyears):
+def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserver,datadirectory ):
     """Add a section, a subsection and some text to the document.
 
     :param doc: the document
@@ -456,49 +456,172 @@ def bevoelkerung(doc, year, populationofelevenyears):
     """
     with doc.create(Chapter('Bevölkerung', label="1Bevoelkerung")):
         with doc.create(Section('Bevölkerungsentwicklung')):
+            doc.append(NoEscape(r'\textbf{\large{Beispiel}}'))
             doc.append(NoEscape(r'\marginnote{\emph{Einflüsse auf die ' +
                                 'Bevölkerungsentwicklung}}[0.2cm]'))
-            doc.append(NoEscape(r'\fbox{\parbox{\columnwidth}{\emph{Die ' +
-                                'Bevölkerungsentwicklung ergibt sich aus der ' +
-                                'Differenz zwischen Geburtenrate und Sterberate '+ 
-                                'in Verbindung mit dem Wanderungssaldo. Dieser ' +
-                                'wiederum wird von verschiedenen Faktoren ' +
-                                'beeinflusst: von globalen politischen ' +
-                                'Entwicklungen, Tendenzen auf dem Arbeitsmarkt ' + 
-                                '(z.B. Anzahl der offenen und vermittelbaren ' +
-                                ' Stellen), dem Wohnraumangebot (z.B. Mietpreise, ' + 
-                                'freie Wohnkapazitäten, Wohnraumqualität), durch ' +
-                                'die Bildungsinfrastruktur (z.B. Angebot an ' +
-                                'Kindertagesstätten und Schulen bzw. Hochschulen), ' + 
-                                'das Angebot an beruflichen Ausbildungen sowie ' +
-                                'durch persönliche oder familiäre Entscheidungen ' + 
-                                'über den Hauptwohnsitz.}}} '))
-            doc.append(NoEscape(r'\begin{figure}[htbp]'))
-            s = r'\includegraphics[width=\textwidth]{ABBILDUNGEN/Abbildungen/Bevölkerungsentwicklung '+ str(year-10) +' bis '+ str(year) +'.png}'
-            doc.append(NoEscape(s))
-            doc.append(NoEscape(r'\caption{\textbf{Bevölkerungsentwicklung '+ str(year-10) +' bis '+ str(year) +' (ohne Berücksichtigung Zensus 2011).}}'))
+            doc.append(NoEscape(r'\fbox{\parbox{\columnwidth}{\emph{Die Bevölkerungsentwicklung ergibt sich aus der Differenz zwischen Geburten- und Sterberate in Verbindung mit dem Wanderungssaldo. Dieser wird von verschiedenen Faktoren beeinflusst: von globalen politischen Entwicklungen, Tendenzen auf dem Arbeitsmarkt (z.B. Anzahl der offenen und vermittelbaren Stellen), dem Wohnraumangebot (z.B. Mietpreise, freie Wohnkapazitäten, Wohnraumqualität), durch die Bildungsinfrastruktur (z.B. Angebot an Kindertagesstätten und Schulen bzw. Hochschulen), das Angebot an beruflichen Ausbildungen sowie durch persönliche oder familiäre Entscheidungen über den Hauptwohnsitz.}}}'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r' \marginnote{\scriptsize{*Hinweis: Um die Veränderungen besser sichtbar zu machen, beginnt die y-Achse bei 84.000 statt bei 0.}} [0.25cm]'))
+            
+            #######################################################Get Data Population ##########################################################
+            population = pd.read_csv(datadirectory+"//Population//Population.csv", sep = ";")
+
+            filenameabb1 = 'Bevölkerungsentwicklung '+ str(year-11) +' bis '+ str(year-1) +'.png'
+            pathabb1 = directoryabbbevoelkerung + '//' + filenameabb1
+            directoryabbbevoelkerungserver = directoryabbbevoelkerung + "//" + filenameabb1            
+        
+            filteryears1 = (population['year'] >= year-11) 
+            
+            populationofelevenyears = population[filteryears1]
+            
+            filteryears2 = (populationofelevenyears['year'] < year)
+            populationofelevenyears = populationofelevenyears[filteryears2]          
+            minpopulation = populationofelevenyears["population"].min()  
+            maxpopulation = populationofelevenyears["population"].max()
+            currentpopulation = populationofelevenyears['population'][(populationofelevenyears['year'] == year-1)].values[0]
+            prevpopulation = populationofelevenyears['population'][(populationofelevenyears['year'] == year-11)].values[0]
+            prevyear = populationofelevenyears['population'][(populationofelevenyears['year'] == year-2)].values[0]
+            #########################################################################################################
+            populationchart = alt.Chart(populationofelevenyears).mark_bar(size = 20, color='#4F81BD').encode(
+            alt.X('year',
+                  axis=alt.Axis(labels=True, title='Jahr'),
+                  scale=alt.Scale(domain=(year-10.5, year+0.5))
+                  ),
+            alt.Y('population',
+                axis=alt.Axis(labels=True, title='Bevölkerung'),
+                scale=alt.Scale(domain=(round(minpopulation*0.97), round(maxpopulation*1.03)))
+                ),
+            ).configure_axisX(
+                labelAngle=90,
+            )
+            ################################################################################################################
+            
+            ################################################Population Chart####################################
+            bars = alt.Chart(populationofelevenyears).mark_bar(size = 20, color='#4F81BD').encode(
+            alt.X('year',
+                  axis=alt.Axis(labels=True, title='Jahr', format = (" f")),
+                  scale=alt.Scale(domain=(year-11, year-1))
+                  ),
+            alt.Y('population',
+                axis=alt.Axis(labels=True, title='Bevölkerung'),
+                scale=alt.Scale(domain=(round(minpopulation*0.97), round(maxpopulation*1.03)))
+                ),
+            )
+            
+            text = bars.mark_text(
+                align='center',
+                baseline='middle',
+                #dx=3  # Nudges text to right so it doesn't appear on top of the bar
+                dy = -10
+            ).encode(
+                text='population'
+            )
+            
+            (bars + text).properties(width=500).save(directoryabbbevoelkerungserver)
+        
+            ################################################Population Chart####################################
+            
+                   
+            
+            doc.append(NoEscape(r'\begin{figure}[H]'))
+            doc.append(NoEscape(r' \includegraphics[width=\textwidth]{'+pathabb1+'}'))
+            doc.append(NoEscape(r' \caption{\textbf{Bevölkerungsentwicklung '+ str(year-11) +' bis '+ str(year-1) +' (ohne Berücksichtigung Zensus 2011).}}'))
             doc.append(NoEscape(r' \label{fig:Abbildung_1}'))
             doc.append(NoEscape(r'\end{figure}'))
-            #Was war die Einwohnerzahl vor 40 Jahren?
-            doc.append(NoEscape(r'\marginnote{\emph{Bevölkerungszunahme seit dem Jahr 2010, aktueller Stand: 96.204}}[0cm]'))
-            doc.append(NoEscape(r'Im Rückblick zeigt sich, dass die Einwohnerzahl im Vergleich zum Jahr 2008 um 7.071 Personen angestiegen ist (vgl. Abb. 1). Von 2010 bis 2014 wuchs die Stadt jährlich um ca. 500 Personen. Zwischen 2015 und 2017 sind mehr als 1.000 EinwohnerInnen je Jahr hinzugekommen, in 2015 sogar 1.796. Im Jahr 2018 stieg \marginnote{\emph{höchste Einwohnerzahl seit über 40 Jahren}}[0cm] die Bevölkerungszahl um 735 Personen, also nicht mehr ganz so stark wie zuvor. Mit einer Einwohnerzahl von 96.204 verfügt Flensburg über den höchsten Bevölkerungsstand seit über 40 Jahren.'))
-            doc.append(NoEscape(r'\fcolorbox{black}{cyan}{\parbox{\columnwidth}{\footnotesize{\underline{Hinweis}: Für die Jahre ab 2011 hat das Statistikamt Nord auf Grundlage der Ergebnisse des Zensus 2011 eine deutlich unter den bisherigen Ergebnissen liegende Bevölkerungszahl (82.258 zum Stichtag 31.12.2011) förmlich festgesetzt. Das Flensburger Einwohnermeldere-gister wies im Vergleich eine Einwohnerzahl von 89.532 Personen aus. Alle nachfolgenden Angaben zu den Bevölkerungszahlen beziehen sich aber weiterhin auf Datenbestände des städtischen Einwohnermelderegisters.}}}'))
-            doc.append(NoEscape(r'\textbf{a) kleinräumige Entwicklung}'))
-            doc.append(NoEscape(r'\marginnote{\emph{Zunahme der Bevölkerung in fast allen Stadtteilen}}[0cm]'))
-            doc.append(NoEscape(r'Die Bevölkerungsentwicklung verläuft im Zehnjahresvergleich in fast allen Stadtteilen positiv (vgl. Tab 1 und Abb. 2), wenn sich auch große Unterschiede hinsichtlich der Intensität des Wachstums zeigen. In der Nordstadt, Weiche und Tarup sind deutlich mehr Personen mit Hauptwohnsitz gemeldet als vor zehn Jahren (Zuwachs um jeweils mehr als 1.000 Einwohner). Mit Ausnahme von Engelsby hat die Bevölkerung auch in allen anderen Stadtteilen zugenommen. Im Vergleich zum Vorjahr hat der Friesische Berg 160 EinwohnerInnen verloren, in Engelsby gab es hingegen einen Zuwachs um 31 Personen.'))
+
+            doc.append(NoEscape(r'\marginnote{\emph{Bevölkerungszunahme seit dem Jahr '+ str(year-11) +', aktueller Stand: '+ str(currentpopulation) +'}}[0.2cm]'))
+
             
-#            doc.append(NoEscape(r'\begin{table}[htbp]'))
-#            doc.append(NoEscape(r'    \caption{\textbf{EinwohnerInnen in den Stadtteilen 2008 bis 2018*.}}'))
-#            doc.append(NoEscape(r'    \includegraphics[width=\textwidth]{TABELLEN/Tabellen/EinwohnerInnen in den Stadtteilen 2008 bis 2018.png}'))
-#            doc.append(NoEscape(r'    \label{tab:Tabelle_1}'))
-#            doc.append(NoEscape(r'\end{table}'))
+            currentpopulationstring = r'Zum 31.12.'+ str(year-1) + ' waren '+ str(currentpopulation) +' Personen mit ihrem Hauptwohnsitz in Flensburg gemeldet. ' 
+            highest_population = r'Das ist der höchste Bevölkerungsstand seit fast 60 Jahren. '
             
+            if (prevpopulation > currentpopulation):
+                 compare_curr_prev_population = r"Im Vergleich zu "+ str(year-11) +" ist die Einwohnerzahl Flensburgs um "+ str(prevpopulation-currentpopulation) +" Personen gesunken (vgl. Abb. \ref{fig:Abbildung_1}).";
+            elif(prevpopulation < currentpopulation):
+                compare_curr_prev_population = r"Im Vergleich zu "+ str(year-11) +" ist die Einwohnerzahl Flensburgs um "+ str(currentpopulation-prevpopulation) +" Personen angewachsen (vgl. Abb. \ref{fig:Abbildung_1}).";
+            elif (prevpopulation == currentpopulation) :
+                compare_curr_prev_population = r"Im Vergleich zu "+ str(year-11) +" ist die Einwohnerzahl Flensburgs konstant geblieben (vgl. Abb. \\ref{fig:Abbildung_1}).";
+            
+            average_population = r'Zwischen 2010 und 2014 ist die Stadt durchschnittlich um ca. 500 Personen jährlich gewachsen. In den Jahren 2015 bis 2017 sind mehr als 1.000 Einwohner*innen pro Jahr hinzugekommen, in 2015 waren es sogar 1.796.'
+                                
+            prevyear = r'Im Vergleich zum Vorjahr \marginnote{\emph{höchste Einwohnerzahl seit fast 60 Jahren}}[0cm] steigt die Bevölkerung um 0,74\% (+716 Personen). Damit bewegt sich der Zuwachs auf dem Vorjahresniveau.'
+            
+            population_development = currentpopulationstring + highest_population + compare_curr_prev_population + average_population + prevyear
+
+            doc.append(NoEscape(population_development))
+            doc.append(NoEscape(r'\\'))
+            
+            doc.append(NoEscape(r'\fcolorbox{black}{PaleAqua}{\parbox{\columnwidth}{\footnotesize{\underline{Hinweis}: Für die Jahre ab 2011 hat das Statistische Amt für Hamburg und Schleswig-Holstein (Statistikamt Nord) auf Grundlage der Ergebnisse des Zensus 2011 eine deutlich unter den bisherigen Ergebnissen liegende Bevölkerungszahl (82.258 zum Stichtag 31.12.2011) förmlich festgesetzt. Das Flensburger Einwohnermelderegister wies im Vergleich eine Einwohner*innenzahl von 89.532 Personen aus. Die Stadt Flensburg hat 2015 gegen die Ergebnisse des Zensus geklagt. Die rechtliche Klärung des Sachverhaltes ist derzeit noch nicht abgeschlossen. Daher beziehen sich alle nachfolgenden Angaben zu den Bevölkerungszahlen weiterhin auf Datenbestände des städtischen Einwohnermelderegisters. Im Gegensatz zu den Zahlen des Statistikamts Nord können die Daten des Melderegisters zudem kleinräumig ausgewertet werden. Des Weiteren wird die Vergleichbarkeit mit den Daten der Sozialatlanten der Vorjahre gewährleistet.}}}'))
+            doc.append(NoEscape(r'\\'))
+            
+            
+            
+            doc.append(NoEscape(r'\subsubsection{a) kleinräumige Entwicklung}'))
+            doc.append(NoEscape(r'\\'))           
+            doc.append(NoEscape(r'\marginnote{\emph{Zunahme der Bevölkerung in fast allen Stadtteilen}}[0.25cm]')) 
+            doc.append(NoEscape(r'\\'))  
+            doc.append(NoEscape(r'Im Vergleich zu 2009 weisen fast alle Stadtteile ein kontinuierliches Wachstum auf (vgl. Tab. \ref{tab:Tabelle_1} und Abb. \ref{fig:Abbildung_2}). Es zeigen sich jedoch große Unterschiede hinsichtlich der Wachstumsraten in den einzelnen Stadtteilen. So ist für die Nordstadt, Mürwik und Tarup ein Zuwachs um mehr als 1.000 Einwohner*innen seit 2009 zu verzeichnen. Auch in den anderen Stadtteilen ist eine allgemeine Zunahme der Bevölkerungszahlen zu konstatieren. Lediglich in Engelsby ist die Einwohner*innenzahl zurückgegangen (-377 ggü. 2009). Im Vergleich zum Vorjahr sind insbesondere Mürwik (+286) und Tarup (+188) gewachsen. Am stärksten geht die Einwohner*innenzahl im Stadtteil Engelsby zurück (-94 ggü. 2018).'))            
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\marginnote{\scriptsize{* Einwohner*innen mit Haupt- oder alleiniger Wohnung. Geringfügige Abweichungen ergeben sich durch nicht zuordenbare Personen.}}[1.25cm]'))
+            
+            #Districts
+            districts = pd.read_csv(datadirectory+"//Population//District.csv", sep = ";",encoding = "ISO-8859-1")
+            districts.loc[13] = districts.sum()
+            districts.loc[13," "] = "Flensburg"
+            #districts.append(df.sum().rename('Flensburg'))
+            print(districts)
+            createtable(doc,districts)
+            
+            
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(r'\\'))
+
                 #example dataframe
             d = {'col1': [1, 2], 'col2': [3, 4], 'col3': [3, 4]}
             df = pd.DataFrame(data=d)
             df
             createtable(doc,df)
-            print(df)
             doc.append(NoEscape(''))
             doc.append(NoEscape(''))
             doc.append(NoEscape(''))
@@ -546,14 +669,16 @@ if __name__ == '__main__':
         driver = webdriver.Chrome()     
     
     # variable deklaration
-    year = 2018; 
-    populationofelevenyears =  [89133, 88812, 88959, 89532, 90179, 90641, 91316, 93112, 94227, 95469, 96204]
-    minpoulation = min(populationofelevenyears)
-    maxpoulation = max(populationofelevenyears)
+    year = 2020; 
     
     directory = os.path.dirname(__file__) + '\\Sozialatlas_generated'
     directoryabb1 = directory + '\\ABBILDUNGEN'
-    directoryabb2 = directoryabb1 + '\\Abbildungen'
+    directoryabbbevoelkerung = directoryabb1 + '\\Abbildungen_1_Bevölkerung'
+    
+    directoryabb1latex = 'ABBILDUNGEN'
+    directoryabbbevoelkerunglatex = directoryabb1latex + '//Abbildungen_1_Bevölkerung' 
+    
+    datadirectory = directory + '\\Data'
     
     #### Create Folder######
     try:
@@ -565,33 +690,16 @@ if __name__ == '__main__':
     except:
         os.mkdir(directoryabb1) 
     try:
-        os.stat(directoryabb2)
+        os.stat(directoryabbbevoelkerung)
     except:
-        os.mkdir(directoryabb2) 
+        os.mkdir(directoryabbbevoelkerung) 
         
     
     #output Path of the tex data
     os.chdir(path = directory )
     
     ######################################Create Diagrams
-    stringpath = directoryabb2 + '\\Bevölkerungsentwicklung '+ str(year-10) +' bis '+ str(year) +'.png'
-    print(stringpath)
-    #Create Population Chart of the last 11 years
-    x=list(range(year-10, year+1, 1))
-    population  =  pd . DataFrame ({ 
-    'years' :  x, 
-    'population' :  populationofelevenyears,
-    })
-    populationchart = alt.Chart(population).mark_bar(size = 20, color='blue').encode(
-    alt.X('years',
-          axis=alt.Axis(labels=False),
-          ),
-    alt.Y('population',
-        axis=alt.Axis(labels=False),
-        scale=alt.Scale(domain=(round(minpoulation*0.97), round(maxpoulation*1.03)))
-        ),
-    )
-    populationchart.save(directoryabb2 + '\\Bevölkerungsentwicklung '+ str(year-10) +' bis '+ str(year) +'.png')
+
     
     
     
@@ -626,7 +734,7 @@ if __name__ == '__main__':
     
 #    doc.append(NoEscape(r"\include{0_Zusammenfassung}"))
 #    doc.append(NoEscape(r"\include{1Bevoelkerung}")) 
-    bevoelkerung(ma,year,populationofelevenyears)
+    bevoelkerung(ma,year,directoryabbbevoelkerunglatex, directoryabbbevoelkerung,datadirectory)
 
 #    doc.append(NoEscape(r"\include{2_ArbeitsmarktundBeschäftigung}")) 
 #    doc.append(NoEscape(r"\include{3_Wohnen}")) 
