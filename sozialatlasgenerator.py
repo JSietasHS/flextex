@@ -87,60 +87,125 @@ class Multirow():
     def checkMultirowInDF(self, row,column):
         return ((column == self.get_col()) and (row == self.get_startrow()))
     
-def getColorstringFromList(colorlist, checkvalue):
+def getCommandstringFromList(valuelist, checkvalue,latexcommand):
     res = ""
-    if colorlist is not None:
-           for color in colorlist:
-               if color[0] == checkvalue and color[1] is not None and color[2] is not None :
-                   res = r"\cellcolor["+ str(color[1]) +"]{"+ str(color[2]) +"} "
+    if valuelist is not None:
+           for value in valuelist:
+               if value[0] == checkvalue and value[1] is not None :
+                   res = "\\"+latexcommand+" {"+ str(value[1]) +"}"
     return res
 
 #Create a Table out of a pandas Dataframe 
 #input  document
 #       dataframe: a pandas dataframe
-#       coloumncolor: List 
+#       coloumncolor: List (index, color)
+#       fontsize: Latexfontsize
 #       coloumwithcolor list of integer #Paint the number of the coloumn in the 
 #                               coloumncolor default value all coloumns
 #       multirows # List of Triple [Rownumber,start coloumn, end coloumn]
 #                   rownumber start at 0 the row of the table
 #                   coloumnnumber start at 0 the start coloumn to connect coloumns
-#       multicoloumns # # List of MultiCol elements to add multicoloumns        
-def createtable(doc, df, multcolumn=None, multrow=None, columncolor = None, rowcolor=None):
+#       multicoloumns # # List of MultiCol elements to add multicoloumns     
+#       framecolor: color of te frame as string   
+#       framewidth: width of the frame in pt
+#       rowheight: 
+#       align: tuple (index, [clr])
+def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, columncolor = None, rowcolor=None, fontsize = None, framecolor = None, framewidth = 2, rowstretch = None, align = None, fontweightcoloumnlist = [], fontweightrowlist = []):
     dfcopy = df.copy(deep=False) #copy of the dataframe
     #multcolumn = [Multicol(0,0,1)] #test
     #multrow = [Multirow(0,0,1)] #test
     #columncolor = [(1,"gray",0.8),(3,"gray",0.8)]
-    #rowcolor = [(1,"gray",0.8),(3,"gray",0.8)]
+    #rowcolor = [(1,"gray"),(3,"gray")]
     rowcellcolor = ""
     columncellcolor = ""
+    data = ""
     addmcol = None # add multicoloumn
     addmrow = None # add multirow
     values = [] #add values to table
     i=0 #counter
     c='|' #coloumns
+    headercolor = ""
+    setalign = False
+    fontweightrow = False
+    fontweightcolumn = False
     
     all_columns = list(dfcopy) # Creates list of all column headers
     dfcopy[all_columns] = dfcopy[all_columns].astype(str) #Set all coloumnsto String
     
+    doc.append(NoEscape("\\setlength{\\arrayrulewidth}{"+ str(framewidth) +"pt}"))
     #create table coloumns
-    while i in range(0,len(df.columns)):
-        c = c + 'c|'
-        i = i+1
+    if framecolor is not None:
+        doc.append(NoEscape(r'\arrayrulecolor{'+framecolor+'}'))
+    if fontsize is not None:
+        doc.append(NoEscape(r'\begin{'+fontsize+'}'))
+    if rowstretch is not None:
+        doc.append(NoEscape(r'\renewcommand{\arraystretch}{'+str(rowstretch)+'}'))
+        
+    #align
+    while i in range(0,len(df.columns)): 
+        if align is not None:
+            setalign = False
+            for a in align:
+                if ((a[0] is not None) and (a[1] is not None) and (a[0] == i)):
+                    c = c + str(a[1]) + '|'
+                    setalign = True
+        if not setalign:
+           c = c + 'c|' 
+        i = i+1  
         
     table3 = Tabular(c)
+    table3.add_hline()
     #iterate through rows
+    if addcoloumnnames:
+        coloumnnames = df.columns.values.tolist()
+        if (fontweightrowlist is not None) and (-1 in fontweightrowlist):
+            for i in range(0,len(df.columns)):
+                coloumnnames[i] = "\\textbf{"+coloumnnames[i]+"}"
+        if fontweightcoloumnlist is not None:
+             for i in range(0,len(df.columns)):
+                 if i in fontweightcoloumnlist:
+                     coloumnnames[i] = "\\textbf{"+coloumnnames[i]+"}"
+        
+        if rowcolor is not None:
+            headercolor = ""
+            headercolor = getCommandstringFromList(columncolor,0,"cellcolor")
+            for i in range(0,len(df.columns)):
+                coloumnnames[i] = NoEscape(headercolor + " " + coloumnnames[i])
+        if columncolor is not None:
+            for i in range(0,len(df.columns)):
+                headercolor = ""
+                headercolor = getCommandstringFromList(columncolor,i,"cellcolor")
+                coloumnnames[i] = NoEscape(headercolor + " " + coloumnnames[i])
+        table3.add_row(coloumnnames)
+        table3.add_hline()
+        
+    
     for row in dfcopy.index:
+        
+        fontweightrow= False
+        if row in fontweightrowlist:
+            fontweightrow = True
+    
+        
         rowcellcolor = ""
         #print('row:' + str(row))
         values = []
         #iterate through coloumns
-        rowcellcolor = getColorstringFromList(rowcolor,row)
+        rowcellcolor = getCommandstringFromList(rowcolor,row,"cellcolor")
         for columnind, column in enumerate(df.columns):
+            
+            fontweightcolumn = False
+            if i in fontweightcoloumnlist:
+                fontweightcolumn = True
+                
+            if fontweightrow or fontweightcolumn:
+                dfcopy.iat[row,columnind] = "\\textbf{" + str(dfcopy.iat[row,columnind]) + "}"
+            
             addmcol = None
             addmrow = None
             cellcolor= ""
             columncellcolor = ""
-            columncellcolor = getColorstringFromList(columncolor,columnind)
+            columncellcolor = getCommandstringFromList(columncolor,columnind,"cellcolor")
             if columncellcolor == "" :
                 cellcolor = rowcellcolor
             else:
@@ -197,8 +262,8 @@ def createtable(doc, df, multcolumn=None, multrow=None, columncolor = None, rowc
                 
     #print(dfcopy)
     doc.append(table3)
-                
-    
+    if fontsize is not None:
+        doc.append(NoEscape(r'\end{'+fontsize+'}'))
       
 
 
@@ -278,7 +343,9 @@ def latexmainstart(doc,year):
     
     #Farben Colorbox
     doc.preamble.append(NoEscape(r"\definecolor{PaleAqua}{rgb}{0.74, 0.83, 0.9}")) 
-    doc.preamble.append(NoEscape(r"\definecolor{LightBlue}{RGB}{217,226,238}"))  
+    doc.preamble.append(NoEscape(r"\definecolor{LightBlue}{RGB}{217,226,238}")) 
+    doc.preamble.append(NoEscape(r"\definecolor{Solitude}{HTML}{DCE6F1}")) 
+    doc.preamble.append(NoEscape(r"\definecolor{TropicalBlue}{HTML}{B8CCE4}"))
     #Fancyhdr-Package genutzt zur Nutzung muss Pagestyle auf "Fancy" geändert werden die vorangestellten Buchstaben gelten der Platzierung, für eine individuelle Kopf- und Fußzeile im Dokument 
     doc.preamble.append(NoEscape(r"\pagestyle{fancy}")) 
     doc.preamble.append(NoEscape(r"\addtolength{\headwidth}{\marginparsep}")) 
@@ -456,7 +523,6 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
     """
     with doc.create(Chapter('Bevölkerung', label="1Bevoelkerung")):
         with doc.create(Section('Bevölkerungsentwicklung')):
-            doc.append(NoEscape(r'\textbf{\large{Beispiel}}'))
             doc.append(NoEscape(r'\marginnote{\emph{Einflüsse auf die ' +
                                 'Bevölkerungsentwicklung}}[0.2cm]'))
             doc.append(NoEscape(r'\fbox{\parbox{\columnwidth}{\emph{Die Bevölkerungsentwicklung ergibt sich aus der Differenz zwischen Geburten- und Sterberate in Verbindung mit dem Wanderungssaldo. Dieser wird von verschiedenen Faktoren beeinflusst: von globalen politischen Entwicklungen, Tendenzen auf dem Arbeitsmarkt (z.B. Anzahl der offenen und vermittelbaren Stellen), dem Wohnraumangebot (z.B. Mietpreise, freie Wohnkapazitäten, Wohnraumqualität), durch die Bildungsinfrastruktur (z.B. Angebot an Kindertagesstätten und Schulen bzw. Hochschulen), das Angebot an beruflichen Ausbildungen sowie durch persönliche oder familiäre Entscheidungen über den Hauptwohnsitz.}}}'))
@@ -536,9 +602,9 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
             highest_population = r'Das ist der höchste Bevölkerungsstand seit fast 60 Jahren. '
             
             if (prevpopulation > currentpopulation):
-                 compare_curr_prev_population = r"Im Vergleich zu "+ str(year-11) +" ist die Einwohnerzahl Flensburgs um "+ str(prevpopulation-currentpopulation) +" Personen gesunken (vgl. Abb. \ref{fig:Abbildung_1}).";
+                 compare_curr_prev_population = r"Im Vergleich zu "+ str(year-11) +" ist die Einwohnerzahl Flensburgs um "+ str(prevpopulation-currentpopulation) +" Personen gesunken (vgl. Abb. \\ref{fig:Abbildung_1}).";
             elif(prevpopulation < currentpopulation):
-                compare_curr_prev_population = r"Im Vergleich zu "+ str(year-11) +" ist die Einwohnerzahl Flensburgs um "+ str(currentpopulation-prevpopulation) +" Personen angewachsen (vgl. Abb. \ref{fig:Abbildung_1}).";
+                compare_curr_prev_population = r"Im Vergleich zu "+ str(year-11) +" ist die Einwohnerzahl Flensburgs um "+ str(currentpopulation-prevpopulation) +" Personen angewachsen (vgl. Abb. \\ref{fig:Abbildung_1}).";
             elif (prevpopulation == currentpopulation) :
                 compare_curr_prev_population = r"Im Vergleich zu "+ str(year-11) +" ist die Einwohnerzahl Flensburgs konstant geblieben (vgl. Abb. \\ref{fig:Abbildung_1}).";
             
@@ -569,9 +635,23 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
             districts = pd.read_csv(datadirectory+"//Population//District.csv", sep = ";",encoding = "ISO-8859-1")
             districts.loc[13] = districts.sum()
             districts.loc[13," "] = "Flensburg"
-            #districts.append(df.sum().rename('Flensburg'))
-            print(districts)
-            createtable(doc,districts)
+            difference_coloumn = districts.iloc[:,6] -districts.iloc[:,1]
+            procentual_coloumn = round(100 / districts.iloc[:,1] * difference_coloumn,1)
+            districts.insert(7, 'Veränderung'+ str(year-11) + ' - ' + str(year-1), difference_coloumn)
+            districts.insert(8, "", procentual_coloumn)
+            
+
+            districts.loc[-1] = ['', '', '','', '', '','', 'absolut', 'prozentual']  # adding a row
+            districts.index = districts.index + 1 
+            districts.sort_index(inplace=True)
+            print(str(districts))
+            #multirowlist = [Multirow(1,0,1),Multirow(2,0,1),Multirow(3,0,1),Multirow(4,0,1),Multirow(5,0,1),Multirow(6,0,1),Multirow(7,0,1),Multirow(8,0,1)]
+            #multirowlist = [Multirow(1,1,2)]
+            createtable(doc,districts,fontsize="scriptsize", columncolor = \
+                        [(0,"Solitude"),(1,"Solitude"),(2,"Solitude"),(3,"Solitude") \
+                         ,(4,"Solitude"),(5,"Solitude"),(6,"Solitude"), \
+                         (7,"TropicalBlue"),(8,"TropicalBlue"),], framecolor = \
+                            "white", align = [(0,"l")], rowstretch=1.5, fontweightrowlist = [-1,0,14])
             
             
             doc.append(NoEscape(r'\\'))
