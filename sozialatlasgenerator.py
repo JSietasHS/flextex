@@ -44,11 +44,11 @@ class Multicol():
         return self.data
     
     def set_data(self, data):
-        self.data = MultiColumn(self.get_length(), align='|c|', data=data)
-    
+        self.data = MultiColumn(self.get_length(), align='c|', data=NoEscape(data))
+        
     def checkMulticolInDF(self, row,column):
-
         return ((row == self.get_row()) and (column == self.get_startcolumn()))
+    
 
 #col - The coloumn in which the multi row start 
 #startrow - the start coloumn to connect the coloumns
@@ -79,7 +79,7 @@ class Multirow():
         return self.data
     
     def set_data(self, data):
-        self.data = MultiRow(self.get_length(), data=data)
+        self.data = MultiRow(NoEscape(int(self.get_length()*(-1))), data=NoEscape(data))
 
     def get_length(self):
         return self.endrow +1 - self.startrow
@@ -92,7 +92,38 @@ def getCommandstringFromList(valuelist, checkvalue,latexcommand):
     if valuelist is not None:
            for value in valuelist:
                if value[0] == checkvalue and value[1] is not None :
-                   res = "\\"+latexcommand+" {"+ str(value[1]) +"}"
+                   res = '\\'+latexcommand+" {"+ str(value[1]) +"}"
+    return res
+
+#Helper Class to Print Horizontal Line in different colors    
+class Hhlinevalue():
+    
+    color = "white"
+    size = 0
+    
+    def __init__(self, size, color):
+        self.size = size
+        self.color = color
+    
+    def set_color(self, color):
+        self.color = color
+    
+    def set_size(self, size):
+        self.size = size
+        
+    def get_size(self):
+        return self.size
+    
+    def get_color(self):
+        return self.color
+        
+    def set_size_minusone(self):
+        self.size = self.size -1
+
+def getColorfromCommandString(command):
+    res = None
+    if ("{" in command ) and ("}" in command):
+        res = command[command.index('{')+1:command.index('}')]
     return res
 
 #Create a Table out of a pandas Dataframe 
@@ -110,7 +141,7 @@ def getCommandstringFromList(valuelist, checkvalue,latexcommand):
 #       framewidth: width of the frame in pt
 #       rowheight: 
 #       align: tuple (index, [clr])
-def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, columncolor = None, rowcolor=None, fontsize = None, framecolor = None, framewidth = 2, rowstretch = None, align = None, fontweightcoloumnlist = [], fontweightrowlist = []):
+def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, columncolor = None, rowcolor=None, fontsize = None, framecolor = "black", framewidth = 2, rowstretch = None, align = None, fontweightcoloumnlist = [], fontweightrowlist = []):
     dfcopy = df.copy(deep=False) #copy of the dataframe
     #multcolumn = [Multicol(0,0,1)] #test
     #multrow = [Multirow(0,0,1)] #test
@@ -128,6 +159,9 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
     setalign = False
     fontweightrow = False
     fontweightcolumn = False
+    hhline = [] ### contains a tuple of size and color 
+    hhlinelatexcommand = r"\hhline{|" #set hhline command 
+    cellcolorstring = "white" #color
     
     all_columns = list(dfcopy) # Creates list of all column headers
     dfcopy[all_columns] = dfcopy[all_columns].astype(str) #Set all coloumnsto String
@@ -151,7 +185,8 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
                     setalign = True
         if not setalign:
            c = c + 'c|' 
-        i = i+1  
+        i = i+1 
+        
         
     table3 = Tabular(c)
     table3.add_hline()
@@ -160,12 +195,11 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
         coloumnnames = df.columns.values.tolist()
         if (fontweightrowlist is not None) and (-1 in fontweightrowlist):
             for i in range(0,len(df.columns)):
-                coloumnnames[i] = "\\textbf{"+coloumnnames[i]+"}"
+                coloumnnames[i] = r"\textbf{"+coloumnnames[i]+"}"
         if fontweightcoloumnlist is not None:
              for i in range(0,len(df.columns)):
                  if i in fontweightcoloumnlist:
-                     coloumnnames[i] = "\\textbf{"+coloumnnames[i]+"}"
-        
+                     coloumnnames[i] = r"\textbf{"+coloumnnames[i]+"}"
         if rowcolor is not None:
             headercolor = ""
             headercolor = getCommandstringFromList(columncolor,0,"cellcolor")
@@ -178,14 +212,15 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
                 coloumnnames[i] = NoEscape(headercolor + " " + coloumnnames[i])
         table3.add_row(coloumnnames)
         table3.add_hline()
-        
     
     for row in dfcopy.index:
         
+        print(str(row))
+        
+        #add font weight
         fontweightrow= False
         if row in fontweightrowlist:
             fontweightrow = True
-    
         
         rowcellcolor = ""
         #print('row:' + str(row))
@@ -194,6 +229,7 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
         rowcellcolor = getCommandstringFromList(rowcolor,row,"cellcolor")
         for columnind, column in enumerate(df.columns):
             
+            #add fontweight
             fontweightcolumn = False
             if i in fontweightcoloumnlist:
                 fontweightcolumn = True
@@ -206,13 +242,23 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
             cellcolor= ""
             columncellcolor = ""
             columncellcolor = getCommandstringFromList(columncolor,columnind,"cellcolor")
+            
+            #columncolor before rowcolor
+           
             if columncellcolor == "" :
                 cellcolor = rowcellcolor
             else:
                 cellcolor = columncellcolor
-            
+                
+              
             if cellcolor != "":
-                 doc.preamble.append(Package("colortbl"))
+                cellcolorstring = getColorfromCommandString(cellcolor)
+            else:
+                cellcolorstring = "white"
+                
+            #create List for hhline
+            if (row == 0):
+                hhline.append(Hhlinevalue(0,cellcolorstring))            
             
             #check if multicoloumn is in cell
             if multcolumn is not None:   
@@ -225,7 +271,7 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
                 for mrow in multrow:
                     if mrow.checkMultirowInDF(row,columnind):
                         addmrow = mrow
-            #appen multiolrow
+            #append multicolrow
             if ((addmcol is not None) and (addmrow is not None)):
                 for i in range(0,addmrow.get_length()):
                     for j in range(0,addmcol.get_length()):
@@ -242,23 +288,46 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
                 for i in range(0,addmcol.get_length()):
                     data = data + str(dfcopy.iat[row,columnind+i])
                     dfcopy.iat[row,(columnind+i)] = None                 
-                addmcol.set_data(data) 
-                values.append(NoEscape(cellcolor + addmcol.get_data()))
+                addmcol.set_data(cellcolor + data) 
+                values.append(addmcol.get_data())
             #append miltirow
             elif (addmrow is not None):
                 for i in range(0,addmrow.get_length()):
                     data = data + str(dfcopy.iat[row+i,columnind])
                     dfcopy.iat[row+i,columnind] = "" 
-                addmrow.set_data(data) 
-                values.append(NoEscape(cellcolor + addmrow.get_data()))
+                addmrow.set_data(cellcolor + data) 
+                values.append(NoEscape(cellcolor))
+                dfcopy.iat[row+addmrow.get_length()-1,columnind] = addmrow.get_data()
+                #change hhline color and size
+                hhline[columnind].set_size(addmrow.get_length()-1)
+                hhline[columnind].set_color(getColorfromCommandString(cellcolor))
+                
+                
             #append normal value
             elif ((addmcol is None) and (addmrow is None)):
                 #Dont append None but append ''
-                if dfcopy.iat[row,columnind] is not None:
+                if ((dfcopy.iat[row,columnind] is not None) and ( "MultiRow" in str(dfcopy.iat[row,columnind]))):               
+                     values.append(dfcopy.iat[row,columnind])
+                elif not("None" in dfcopy.iat[row,columnind]) :
                     values.append(NoEscape(cellcolor + dfcopy.iat[row,columnind]))
-        #print('Data:' + str(values))
-        table3.add_row(values)
-        table3.add_hline()
+        print('Data:' + str(values))
+        
+        
+        table3.add_row(values) 
+        for hhlinevalue in hhline:
+            if ((hhlinevalue.get_size()) > 0):
+                hhlinelatexcommand = hhlinelatexcommand + r">{\arrayrulecolor{" + hhlinevalue.get_color() + r"}}->{\arrayrulecolor{white}}|"
+                hhlinevalue.set_size_minusone()
+            else:
+                hhlinelatexcommand = hhlinelatexcommand + r">{\arrayrulecolor{white}}-|"
+        hhlinelatexcommand = hhlinelatexcommand + r"}"
+        print(hhlinelatexcommand)
+        print(str(row))
+        table3.append(NoEscape(hhlinelatexcommand))
+        hhlinelatexcommand = r"\hhline{|"
+        #able3.add_hline()
+        #table3.add
+        
                 
     #print(dfcopy)
     doc.append(table3)
@@ -363,6 +432,9 @@ def latexmainstart(doc,year):
     doc.preamble.append(NoEscape(r"\setlength{\parindent}{0pt}")) 
     
     doc.preamble.append(NoEscape(r"\raggedbottom"))
+    
+    doc.preamble.append(Package(r"hhline"))
+    doc.preamble.append(Package(r"colortbl"))
     
     
     #doc.append(NoEscape(r"\includepdf[pages={1}]{ABBILDUNGEN/Deckblatt Sozialatlas.pdf}"))
@@ -623,9 +695,9 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
             
             
             doc.append(NoEscape(r'\subsubsection{a) kleinräumige Entwicklung}'))
-            doc.append(NoEscape(r'\\'))           
+          
             doc.append(NoEscape(r'\marginnote{\emph{Zunahme der Bevölkerung in fast allen Stadtteilen}}[0.25cm]')) 
-            doc.append(NoEscape(r'\\'))  
+
             doc.append(NoEscape(r'Im Vergleich zu 2009 weisen fast alle Stadtteile ein kontinuierliches Wachstum auf (vgl. Tab. \ref{tab:Tabelle_1} und Abb. \ref{fig:Abbildung_2}). Es zeigen sich jedoch große Unterschiede hinsichtlich der Wachstumsraten in den einzelnen Stadtteilen. So ist für die Nordstadt, Mürwik und Tarup ein Zuwachs um mehr als 1.000 Einwohner*innen seit 2009 zu verzeichnen. Auch in den anderen Stadtteilen ist eine allgemeine Zunahme der Bevölkerungszahlen zu konstatieren. Lediglich in Engelsby ist die Einwohner*innenzahl zurückgegangen (-377 ggü. 2009). Im Vergleich zum Vorjahr sind insbesondere Mürwik (+286) und Tarup (+188) gewachsen. Am stärksten geht die Einwohner*innenzahl im Stadtteil Engelsby zurück (-94 ggü. 2018).'))            
             doc.append(NoEscape(r'\\'))
             doc.append(NoEscape(r'\\'))
@@ -637,21 +709,24 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
             districts.loc[13," "] = "Flensburg"
             difference_coloumn = districts.iloc[:,6] -districts.iloc[:,1]
             procentual_coloumn = round(100 / districts.iloc[:,1] * difference_coloumn,1)
-            districts.insert(7, 'Veränderung'+ str(year-11) + ' - ' + str(year-1), difference_coloumn)
+            districts.insert(7, 'Veränderung '+ str(year-11) + ' - ' + str(year-1), difference_coloumn)
             districts.insert(8, "", procentual_coloumn)
             
-
+            districts.loc[-2] = districts.columns
             districts.loc[-1] = ['', '', '','', '', '','', 'absolut', 'prozentual']  # adding a row
-            districts.index = districts.index + 1 
+            districts.index = districts.index + 2 
             districts.sort_index(inplace=True)
-            print(str(districts))
+            
+
+            #print(str(districts))
             #multirowlist = [Multirow(1,0,1),Multirow(2,0,1),Multirow(3,0,1),Multirow(4,0,1),Multirow(5,0,1),Multirow(6,0,1),Multirow(7,0,1),Multirow(8,0,1)]
-            #multirowlist = [Multirow(1,1,2)]
+            multirowlist = [Multirow(0,0,1)]
+            multicolumlist = [Multicol(0,7,8)]
             createtable(doc,districts,fontsize="scriptsize", columncolor = \
                         [(0,"Solitude"),(1,"Solitude"),(2,"Solitude"),(3,"Solitude") \
                          ,(4,"Solitude"),(5,"Solitude"),(6,"Solitude"), \
                          (7,"TropicalBlue"),(8,"TropicalBlue"),], framecolor = \
-                            "white", align = [(0,"l")], rowstretch=1.5, fontweightrowlist = [-1,0,14])
+                            "white", align = [(0,"l")], rowstretch=1.5, fontweightrowlist = [0,16], addcoloumnnames= False, multrow = multirowlist, multcolumn = multicolumlist)
             
             
             doc.append(NoEscape(r'\\'))
@@ -697,11 +772,6 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
             doc.append(NoEscape(r'\\'))
             doc.append(NoEscape(r'\\'))
 
-                #example dataframe
-            d = {'col1': [1, 2], 'col2': [3, 4], 'col3': [3, 4]}
-            df = pd.DataFrame(data=d)
-            df
-            createtable(doc,df)
             doc.append(NoEscape(''))
             doc.append(NoEscape(''))
             doc.append(NoEscape(''))
@@ -825,6 +895,9 @@ if __name__ == '__main__':
 #    doc.append(NoEscape(r"\include{6_ÜbersichtüberdieStadtteile}"))
     latexmainend(ma)
     ma.generate_tex()  
+    
+    
+    
     
     # modularization with include didn't work
     # Bevoelkerung document
