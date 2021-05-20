@@ -141,8 +141,8 @@ def getColorfromCommandString(command):
 #       framewidth: width of the frame in pt
 #       rowheight: 
 #       align: tuple (index, [clr])
-def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, columncolor = None, rowcolor=None, fontsize = None, framecolor = "black", framewidth = 2, rowstretch = None, align = None, fontweightcoloumnlist = [], fontweightrowlist = []):
-    dfcopy = df.copy(deep=False) #copy of the dataframe
+def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, columncolor = None, rowcolor=None, fontsize = None, framecolor = "black", framewidth = 2, rowstretch = None, align = None, fontweightcoloumnlist = [], fontweightrowlist = [], label = None):
+    dfcopy = df.copy(deep=True) #copy of the dataframe
     #multcolumn = [Multicol(0,0,1)] #test
     #multrow = [Multirow(0,0,1)] #test
     #columncolor = [(1,"gray",0.8),(3,"gray",0.8)]
@@ -310,7 +310,7 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
                      values.append(dfcopy.iat[row,columnind])
                 elif not("None" in dfcopy.iat[row,columnind]) :
                     values.append(NoEscape(cellcolor + dfcopy.iat[row,columnind]))
-        print('Data:' + str(values))
+        #print('Data:' + str(values))
         
         
         table3.add_row(values) 
@@ -321,14 +321,15 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
             else:
                 hhlinelatexcommand = hhlinelatexcommand + r">{\arrayrulecolor{white}}-|"
         hhlinelatexcommand = hhlinelatexcommand + r"}"
-        print(hhlinelatexcommand)
-        print(str(row))
+        #print(hhlinelatexcommand)
+        #print(str(row))
         table3.append(NoEscape(hhlinelatexcommand))
         hhlinelatexcommand = r"\hhline{|"
         #able3.add_hline()
         #table3.add
         
-                
+    if not (label is None):
+        table3.append(NoEscape("\label{tab:"+label+"}"))
     #print(dfcopy)
     doc.append(table3)
     if fontsize is not None:
@@ -612,6 +613,7 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
             
             populationofelevenyears = population[filteryears1]
             
+            
             filteryears2 = (populationofelevenyears['year'] < year)
             populationofelevenyears = populationofelevenyears[filteryears2]          
             minpopulation = populationofelevenyears["population"].min()  
@@ -619,20 +621,7 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
             currentpopulation = populationofelevenyears['population'][(populationofelevenyears['year'] == year-1)].values[0]
             prevpopulation = populationofelevenyears['population'][(populationofelevenyears['year'] == year-11)].values[0]
             prevyear = populationofelevenyears['population'][(populationofelevenyears['year'] == year-2)].values[0]
-            #########################################################################################################
-            populationchart = alt.Chart(populationofelevenyears).mark_bar(size = 20, color='#4F81BD').encode(
-            alt.X('year',
-                  axis=alt.Axis(labels=True, title='Jahr'),
-                  scale=alt.Scale(domain=(year-10.5, year+0.5))
-                  ),
-            alt.Y('population',
-                axis=alt.Axis(labels=True, title='Bevölkerung'),
-                scale=alt.Scale(domain=(round(minpopulation*0.97), round(maxpopulation*1.03)))
-                ),
-            ).configure_axisX(
-                labelAngle=90,
-            )
-            ################################################################################################################
+            
             
             ################################################Population Chart####################################
             bars = alt.Chart(populationofelevenyears).mark_bar(size = 20, color='#4F81BD').encode(
@@ -711,6 +700,7 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
             procentual_coloumn = round(100 / districts.iloc[:,1] * difference_coloumn,1)
             districts.insert(7, 'Veränderung '+ str(year-11) + ' - ' + str(year-1), difference_coloumn)
             districts.insert(8, "", procentual_coloumn)
+            districtscopy = districts.copy(deep=True)
             
             districts.loc[-2] = districts.columns
             districts.loc[-1] = ['', '', '','', '', '','', 'absolut', 'prozentual']  # adding a row
@@ -720,57 +710,58 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
 
             #print(str(districts))
             #multirowlist = [Multirow(1,0,1),Multirow(2,0,1),Multirow(3,0,1),Multirow(4,0,1),Multirow(5,0,1),Multirow(6,0,1),Multirow(7,0,1),Multirow(8,0,1)]
-            multirowlist = [Multirow(0,0,1)]
+            multirowlist = [Multirow(0,0,1),Multirow(1,0,1),Multirow(2,0,1),Multirow(3,0,1),Multirow(4,0,1),Multirow(5,0,1),Multirow(6,0,1)]
             multicolumlist = [Multicol(0,7,8)]
             createtable(doc,districts,fontsize="scriptsize", columncolor = \
                         [(0,"Solitude"),(1,"Solitude"),(2,"Solitude"),(3,"Solitude") \
                          ,(4,"Solitude"),(5,"Solitude"),(6,"Solitude"), \
                          (7,"TropicalBlue"),(8,"TropicalBlue"),], framecolor = \
-                            "white", align = [(0,"l")], rowstretch=1.5, fontweightrowlist = [0,16], addcoloumnnames= False, multrow = multirowlist, multcolumn = multicolumlist)
+                            "white", align = [(0,"l")], rowstretch=1.5, fontweightrowlist = [0,15], addcoloumnnames= False, multrow = multirowlist, multcolumn = multicolumlist, label = "Tabelle_1")
             
+
+
+            districtscopy = districtscopy.rename(columns = {'': 'bve'}, inplace = False)
+            districtscopy.insert(9, "bve2", districtscopy.iloc[:,8].divide(100))
+            print(districtscopy.iloc[:,8].divide(100))
+            filenameabb2 = 'Bevölkerungsentwicklung in den Stadtteilen '+ str(year-11) +' bis '+ str(year-1) +'.png'
+            pathabb2 = directoryabbbevoelkerung + '//' + filenameabb2
+            directoryabbbevoelkerungserver = directoryabbbevoelkerung + "//" + filenameabb2 
+
+            print(districtscopy.head())
+            #print(districtscopy.dtypes)
+            #district figure
+            populationchart = alt.Chart(districtscopy).mark_bar(size = 20, color='#4F81BD').encode(
+            alt.X(' ',
+                  axis=alt.Axis(labels=True, title='Stadtteile',labelAngle=45,)
+                  #scale=alt.Scale(domain=(year-10.5, year+0.5))
+                  ),
+            alt.Y('bve2',
+                axis=alt.Axis(labels=True, title='Bevölkerungsentwicklung', format='%'),
+                #scale=alt.Scale(domain=(round(minpopulation*0.97), round(maxpopulation*1.03)))
+                ),
+            )       
+            text = populationchart.mark_text(
+                align='center',
+                baseline='middle',
+                dy=-10  # Nudges text to right so it doesn't appear on top of the bar
+            ).encode(
+                text='bve2'
+            )
             
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
+            (bars + text).properties(height=900)
+                
+            (populationchart + text).properties(width=500).save(directoryabbbevoelkerungserver)
+            
+            doc.append(NoEscape(r'\begin{figure}[H]'))
+            doc.append(NoEscape(r'\includegraphics[width=\textwidth]{'+pathabb2+'}'))
+            doc.append(NoEscape('\\caption{\\textbf{Bevölkerungsentwicklung in den Stadtteilen '+ str(year-11) +' bis '+ str(year-1)+'}}'))
+            doc.append(NoEscape(r'\label{fig:Abbildung_2}'))
+            doc.append(NoEscape(r'\end{figure}'))
+
+
+            doc.append(NoEscape(r'Die stärksten, prozentualen Zuwächse seit 2009 weisen die Stadtteile Tarup, Neustadt und Weiche  auf (s. Abb. \ref{fig:Abbildung_2}). Allein in Engelsby ist ein Rückgang der Einwohner*innenzahl zu verzeichnen.'))
+            doc.append(NoEscape(r'\subsubsection{b) Geburtenentwicklung}'))
+
 
             doc.append(NoEscape(''))
             doc.append(NoEscape(''))
