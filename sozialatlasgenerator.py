@@ -622,22 +622,22 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
             prevpopulation = populationofelevenyears['population'][(populationofelevenyears['year'] == year-11)].values[0]
             prevyear = populationofelevenyears['population'][(populationofelevenyears['year'] == year-2)].values[0]
             
-            
+            print(populationofelevenyears)
             ################################################Population Chart####################################
             bars = alt.Chart(populationofelevenyears).mark_bar(size = 20, color='#4F81BD').encode(
-            alt.X('year',
-                  axis=alt.Axis(labels=True, title='Jahr', format = (" f")),
-                  scale=alt.Scale(domain=(year-11, year-1))
+            alt.X('year:O',
+                  axis=alt.Axis(labels=True, title='Jahr'),
+                  #scale=alt.Scale(domain=(year-11, year-1))
                   ),
-            alt.Y('population',
+            alt.Y('population:Q',
                 axis=alt.Axis(labels=True, title='Bevölkerung'),
-                scale=alt.Scale(domain=(round(minpopulation*0.97), round(maxpopulation*1.03)))
+                scale=alt.Scale(domain=(round(minpopulation*0.97), round(maxpopulation*1.03))),
                 ),
             )
             
             text = bars.mark_text(
                 align='center',
-                baseline='middle',
+                baseline='bottom',
                 #dx=3  # Nudges text to right so it doesn't appear on top of the bar
                 dy = -10
             ).encode(
@@ -737,12 +737,14 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
             alt.Y('bve2',
                 axis=alt.Axis(labels=True, title='Bevölkerungsentwicklung', format='%'),
                 scale=alt.Scale(domain=(-0.1, 0.4))
+                
                 ),
             )       
             text = populationchart.mark_text(
                 align='center',
                 baseline='middle',
-                dy=-10  # Nudges text to right so it doesn't appear on top of the bar
+               
+
             ).encode(
                 text='bve2'
             )
