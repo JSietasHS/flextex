@@ -732,12 +732,11 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
             #district figure
             populationchart = alt.Chart(districtscopy).mark_bar(size = 20, color='#4F81BD').encode(
             alt.X(' ',
-                  axis=alt.Axis(labels=True, title='Stadtteile',labelAngle=45,)
-                  #scale=alt.Scale(domain=(year-10.5, year+0.5))
+                  axis=alt.Axis(labels=True, title='Stadtteile',labelAngle=-45,)
                   ),
             alt.Y('bve2',
                 axis=alt.Axis(labels=True, title='Bevölkerungsentwicklung', format='%'),
-                #scale=alt.Scale(domain=(round(minpopulation*0.97), round(maxpopulation*1.03)))
+                scale=alt.Scale(domain=(-0.1, 0.4))
                 ),
             )       
             text = populationchart.mark_text(
@@ -759,7 +758,7 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
             doc.append(NoEscape(r'\end{figure}'))
 
 
-            doc.append(NoEscape(r'Die stärksten, prozentualen Zuwächse seit 2009 weisen die Stadtteile Tarup, Neustadt und Weiche  auf (s. Abb. \ref{fig:Abbildung_2}). Allein in Engelsby ist ein Rückgang der Einwohner*innenzahl zu verzeichnen.'))
+            doc.append(NoEscape(r'Die stärksten, prozentualen Zuwächse seit "+ str(year-11) + weisen die Stadtteile Tarup, Neustadt und Weiche  auf (s. Abb. \ref{fig:Abbildung_2}). Allein in Engelsby ist ein Rückgang der Einwohner*innenzahl zu verzeichnen.'))
             doc.append(NoEscape(r'\subsubsection{b) Geburtenentwicklung}'))
 
 
