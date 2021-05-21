@@ -730,28 +730,44 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
             print(districtscopy.head())
             #print(districtscopy.dtypes)
             #district figure
-            populationchart = alt.Chart(districtscopy).mark_bar(size = 20, color='#4F81BD').encode(
-            alt.X(' ',
-                  axis=alt.Axis(labels=True, title='Stadtteile',labelAngle=-45,)
-                  ),
-            alt.Y('bve2',
+            
+            base = alt.Chart(
+                districtscopy, 
+                title="One-month percent change in CPI for All Urban Consumers (CPI-U), seasonally adjusted"
+            ).properties(width=700)
+            
+            bars = base.mark_bar().encode(
+                x=alt.X(
+                    " ",
+                    axis=alt.Axis(labels=True, title='Stadtteile',labelAngle=-45),
+                ),
+                y=alt.Y('bve2',
                 axis=alt.Axis(labels=True, title='Bevölkerungsentwicklung', format='%'),
                 scale=alt.Scale(domain=(-0.1, 0.4))
                 
                 ),
-            )       
-            text = populationchart.mark_text(
-                align='center',
-                baseline='middle',
-               
+            )
 
-            ).encode(
+            text = base.encode(
+                x=alt.X(" "),
+                y="bve2",
                 text='bve2'
             )
             
-            (bars + text).properties(height=900)
-                
-            (populationchart + text).properties(width=500).save(directoryabbbevoelkerungserver)
+            textAbove = text.transform_filter(alt.datum.bve2 > 0).mark_text(
+                align='center',
+                baseline='middle',
+                dy=-10
+            )
+            
+            textBelow = text.transform_filter(alt.datum.bve2 < 0).mark_text(
+                align='center',
+                baseline='middle',
+                dy=12
+            )
+            
+            (bars + textAbove + textBelow).properties(width=500).save(directoryabbbevoelkerungserver)
+           
             
             doc.append(NoEscape(r'\begin{figure}[H]'))
             doc.append(NoEscape(r'\includegraphics[width=\textwidth]{'+pathabb2+'}'))
