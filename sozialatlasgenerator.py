@@ -109,10 +109,12 @@ class Hhlinevalue():
     
     color = "white"
     size = 0
+    bordersamecolor = False
     
-    def __init__(self, size, color):
+    def __init__(self, size, color, bordersamecolor = False):
         self.size = size
-        self.color = color
+        self.color = color   
+        self.bordersamecolor = bordersamecolor
     
     def set_color(self, color):
         self.color = color
@@ -120,11 +122,17 @@ class Hhlinevalue():
     def set_size(self, size):
         self.size = size
         
+    def set_bordersamecolor(self, bordersamecolor):
+        self.bordersamecolor = bordersamecolor
+        
     def get_size(self):
         return self.size
     
     def get_color(self):
         return self.color
+    
+    def get_bordersamecolor(self):
+        return self.bordersamecolor
         
     def set_size_minusone(self):
         self.size = self.size -1
@@ -255,8 +263,6 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
         #iterate through coloumns
         rowcellcolor = getCommandstringFromList(rowcolor,row,"cellcolor")
         for columnind, column in enumerate(df.columns):
-            print("test")
-            print(str(columnind))
             #add fontweight
             fontweightcolumn = False
             if i in fontweightcoloumnlist:
@@ -283,10 +289,7 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
                 cellcolorstring = getColorfromCommandString(cellcolor)
             else:
                 cellcolorstring = "white"
-                
-            #create List for hhline
-            #if (row == 0):
-            #    hhline.append(Hhlinevalue(0,cellcolorstring))            
+                          
             
             #check if multicoloumn is in cell
             if multcolumn is not None:   
@@ -299,7 +302,7 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
                 for mrow in multrow:
                     if mrow.checkMultirowInDF(row,columnind):
                         addmrow = mrow
-            #append multicolrow did not work
+            #append multicolrow
             if ((addmcol is not None) and (addmrow is not None)):
                 for i in range(0,addmrow.get_length()):
                     for j in range(0,addmcol.get_length()):
@@ -307,16 +310,14 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
                         #change hhline color and size
                         hhline[columnind+j].set_size(addmrow.get_length()-1)
                         hhline[columnind+j].set_color(getColorfromCommandString(cellcolor))
+                        hhline[columnind+j].set_bordersamecolor(True)
                         if (i > 0)  and (i != addmrow.get_endrow()) :
                             dfcopy.iat[row+i,columnind+j] = "" 
                         else:
                             dfcopy.iat[row+i,columnind+j] = None 
-                    print(str("appendcolrow"))
                     #append more multicoloumns
                     if (i > 0) and (i < (addmrow.get_length()-1)):
                         multcolumn.append(Multicol((addmcol.get_row()+i),addmcol.get_startcolumn(), addmcol.get_endcolumn()))
-                        print("########################################################")
-                        print("i" + str(i))
                     #values.append(NoEscape(cellcolor))
                 ####    
                 addmcol.set_data(cellcolor)
@@ -333,7 +334,6 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
                     data = data + str(dfcopy.iat[row,columnind+i])
                     dfcopy.iat[row,(columnind+i)] = None                 
                 addmcol.set_data(cellcolor + data)
-                print(str("multicol"))
                 values.append(addmcol.get_data())
             #append multirow
             elif (addmrow is not None):
@@ -341,7 +341,6 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
                     data = data + str(dfcopy.iat[row+i,columnind])
                     dfcopy.iat[row+i,columnind] = "" 
                 addmrow.set_data(cellcolor + data) 
-                print(str("addmrow"))
                 values.append(NoEscape(cellcolor))
                 dfcopy.iat[row+addmrow.get_length()-1,columnind] = addmrow.get_data()
                 #change hhline color and size
@@ -356,14 +355,19 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
                      values.append(dfcopy.iat[row,columnind])
                 elif ((dfcopy.iat[row,columnind] is not None) and (not("None" in dfcopy.iat[row,columnind]))) :
                     values.append(NoEscape(cellcolor + dfcopy.iat[row,columnind]))
-        print('Data:' + str(values))
+        #print('Data:' + str(values))
         
         
         table3.add_row(values) 
         for hhlinevalue in hhline:
             if ((hhlinevalue.get_size()) > 0):
-                hhlinelatexcommand = hhlinelatexcommand + r">{\arrayrulecolor{" + hhlinevalue.get_color() + r"}}->{\arrayrulecolor{white}}|"
+                if (hhlinevalue.get_bordersamecolor()):
+                    hhlinelatexcommand = hhlinelatexcommand + r">{\arrayrulecolor{" + hhlinevalue.get_color() + r"}}->{\arrayrulecolor{"+ hhlinevalue.get_color() +"}}|"
+                else:
+                    hhlinelatexcommand = hhlinelatexcommand + r">{\arrayrulecolor{" + hhlinevalue.get_color() + r"}}->{\arrayrulecolor{white}}|"
                 hhlinevalue.set_size_minusone()
+                if ((hhlinevalue.get_size()) == 0):
+                    hhlinevalue.set_bordersamecolor(False)
             else:
                 hhlinelatexcommand = hhlinelatexcommand + r">{\arrayrulecolor{white}}-|"
         hhlinelatexcommand = hhlinelatexcommand + r"}"
