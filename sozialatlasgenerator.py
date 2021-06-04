@@ -1,13 +1,13 @@
 from pylatex import Document, Section, Subsection, Command, Package, \
     MultiRow, Tabular, MultiColumn
-from pylatex.utils import italic, NoEscape
+from pylatex.utils import NoEscape
 from pylatex.section import Chapter
 import  altair  as  alt 
-import numpy as np
+#import numpy as np
 import pandas as pd
 import os
 
-from altair_saver import save
+#from altair_saver import save
 
 from selenium import webdriver
 
@@ -22,11 +22,13 @@ class Multicol():
     startcolumn = 0
     endcolumn = 0
     data = None
+    noescapedata = True
 
-    def __init__(self, row, startcolumn, endcolumn):
+    def __init__(self, row, startcolumn, endcolumn, noescapedata = True):
         self.row = row
         self.startcolumn = startcolumn
         self.endcolumn = endcolumn
+        self.noescapedata = noescapedata
         
     def get_row(self):
         return self.row
@@ -43,8 +45,15 @@ class Multicol():
     def get_data(self):
         return self.data
     
+    def set_noescapedatafalse(self):
+        self.noescapedata = False
+    
     def set_data(self, data):
-        self.data = MultiColumn(self.get_length(), align='c|', data=NoEscape(data))
+        if self.noescapedata:
+            self.data = MultiColumn(self.get_length(), align='c|', data=NoEscape(data))
+        else:
+            self.data = MultiColumn(self.get_length(), align='c|', data=data)
+        
         
     def checkMulticolInDF(self, row,column):
         return ((row == self.get_row()) and (column == self.get_startcolumn()))
@@ -186,11 +195,10 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
         if not setalign:
            c = c + 'c|' 
         i = i+1 
-        
-        
+               
     table3 = Tabular(c)
     table3.add_hline()
-    #iterate through rows
+    #add header coloumn of pd.dataframe
     if addcoloumnnames:
         coloumnnames = df.columns.values.tolist()
         if (fontweightrowlist is not None) and (-1 in fontweightrowlist):
@@ -212,7 +220,26 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
                 coloumnnames[i] = NoEscape(headercolor + " " + coloumnnames[i])
         table3.add_row(coloumnnames)
         table3.add_hline()
+        
+    #crete hhline
+    for cid, c in enumerate(df.columns):
+        cellcolor= ""
+        columncellcolor = ""
+        columncellcolor = getCommandstringFromList(columncolor,cid,"cellcolor")    
+        #columncolor before rowcolor     
+        if columncellcolor == "" :
+            cellcolor = rowcellcolor
+        else:
+            cellcolor = columncellcolor
+        if cellcolor != "":
+            cellcolorstring = getColorfromCommandString(cellcolor)
+        else:
+            cellcolorstring = "white"          
+        #create List for hhline
+        hhline.append(Hhlinevalue(0,cellcolorstring))
+            
     
+    #iterate through rows
     for row in dfcopy.index:
         
         print(str(row))
@@ -228,7 +255,8 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
         #iterate through coloumns
         rowcellcolor = getCommandstringFromList(rowcolor,row,"cellcolor")
         for columnind, column in enumerate(df.columns):
-            
+            print("test")
+            print(str(columnind))
             #add fontweight
             fontweightcolumn = False
             if i in fontweightcoloumnlist:
@@ -257,8 +285,8 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
                 cellcolorstring = "white"
                 
             #create List for hhline
-            if (row == 0):
-                hhline.append(Hhlinevalue(0,cellcolorstring))            
+            #if (row == 0):
+            #    hhline.append(Hhlinevalue(0,cellcolorstring))            
             
             #check if multicoloumn is in cell
             if multcolumn is not None:   
@@ -271,31 +299,49 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
                 for mrow in multrow:
                     if mrow.checkMultirowInDF(row,columnind):
                         addmrow = mrow
-            #append multicolrow
+            #append multicolrow did not work
             if ((addmcol is not None) and (addmrow is not None)):
                 for i in range(0,addmrow.get_length()):
                     for j in range(0,addmcol.get_length()):
                         data = data + str(dfcopy.iat[row+i,columnind+j])
-                        if i > 0:
+                        #change hhline color and size
+                        hhline[columnind+j].set_size(addmrow.get_length()-1)
+                        hhline[columnind+j].set_color(getColorfromCommandString(cellcolor))
+                        if (i > 0)  and (i != addmrow.get_endrow()) :
                             dfcopy.iat[row+i,columnind+j] = "" 
                         else:
                             dfcopy.iat[row+i,columnind+j] = None 
-                addmrow.set_data(data)
-                addmcol.set_data(addmrow.get_data())
-                values.append(NoEscape(cellcolor + addmcol.get_data()))
+                    print(str("appendcolrow"))
+                    #append more multicoloumns
+                    if (i > 0) and (i < (addmrow.get_length()-1)):
+                        multcolumn.append(Multicol((addmcol.get_row()+i),addmcol.get_startcolumn(), addmcol.get_endcolumn()))
+                        print("########################################################")
+                        print("i" + str(i))
+                    #values.append(NoEscape(cellcolor))
+                ####    
+                addmcol.set_data(cellcolor)
+                values.append(addmcol.get_data())
+                ####
+                addmcol.set_noescapedatafalse()
+                addmrow.set_data(cellcolor+data)               
+                addmcol.set_data(addmrow.get_data())       
+                #values.append(NoEscape(cellcolor + addmcol.get_data()))
+                dfcopy.iat[row+addmrow.get_length()-1,columnind] = addmcol.get_data()           
             #append multicol
             elif (addmcol is not None):
                 for i in range(0,addmcol.get_length()):
                     data = data + str(dfcopy.iat[row,columnind+i])
                     dfcopy.iat[row,(columnind+i)] = None                 
-                addmcol.set_data(cellcolor + data) 
+                addmcol.set_data(cellcolor + data)
+                print(str("multicol"))
                 values.append(addmcol.get_data())
-            #append miltirow
+            #append multirow
             elif (addmrow is not None):
                 for i in range(0,addmrow.get_length()):
                     data = data + str(dfcopy.iat[row+i,columnind])
                     dfcopy.iat[row+i,columnind] = "" 
                 addmrow.set_data(cellcolor + data) 
+                print(str("addmrow"))
                 values.append(NoEscape(cellcolor))
                 dfcopy.iat[row+addmrow.get_length()-1,columnind] = addmrow.get_data()
                 #change hhline color and size
@@ -308,9 +354,9 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
                 #Dont append None but append ''
                 if ((dfcopy.iat[row,columnind] is not None) and ( "MultiRow" in str(dfcopy.iat[row,columnind]))):               
                      values.append(dfcopy.iat[row,columnind])
-                elif not("None" in dfcopy.iat[row,columnind]) :
+                elif ((dfcopy.iat[row,columnind] is not None) and (not("None" in dfcopy.iat[row,columnind]))) :
                     values.append(NoEscape(cellcolor + dfcopy.iat[row,columnind]))
-        #print('Data:' + str(values))
+        print('Data:' + str(values))
         
         
         table3.add_row(values) 
@@ -321,16 +367,12 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
             else:
                 hhlinelatexcommand = hhlinelatexcommand + r">{\arrayrulecolor{white}}-|"
         hhlinelatexcommand = hhlinelatexcommand + r"}"
-        #print(hhlinelatexcommand)
-        #print(str(row))
         table3.append(NoEscape(hhlinelatexcommand))
         hhlinelatexcommand = r"\hhline{|"
-        #able3.add_hline()
-        #table3.add
+
         
     if not (label is None):
         table3.append(NoEscape("\label{tab:"+label+"}"))
-    #print(dfcopy)
     doc.append(table3)
     if fontsize is not None:
         doc.append(NoEscape(r'\end{'+fontsize+'}'))
@@ -491,7 +533,7 @@ def einleitung(doc, year):
      doc.append(NoEscape(r'\\'))
      doc.append(NoEscape(r"\emph{Im Vordergrund steht die Entwicklung und strukturelle Zusammensetzung der Bevölkerung nach Alter, Geschlecht und Herkunft. Darüber hinaus dargestellt sind die Geburtenentwicklung sowie wichtige Kennzahlen zur demografischen Entwicklung. Des Weiteren enthält der Sozialatlas Angaben zum Aufenthaltsstatus der in Flensburg lebenden ausländischen Einwohner*innen und zu den Einbürgerungen.}"))
      doc.append(NoEscape(r'\\'))
-     doc.append(NoEscape(r"\textbf{\emph{Arbeitsmarkt und Beschäftigung}}"))
+     doc.append(NoEscape(r"\textbf{\emph{ und Beschäftigung}}"))
      doc.append(NoEscape(r'\\'))
      doc.append(NoEscape(r"\marginnote{\emph{sozialversicherungspflichtige Beschäftigung und Arbeitslosigkeit}}[0.25cm]"))
      doc.append(NoEscape(r'\\'))
@@ -710,8 +752,9 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
 
             #print(str(districts))
             #multirowlist = [Multirow(1,0,1),Multirow(2,0,1),Multirow(3,0,1),Multirow(4,0,1),Multirow(5,0,1),Multirow(6,0,1),Multirow(7,0,1),Multirow(8,0,1)]
-            multirowlist = [Multirow(0,0,1),Multirow(1,0,1),Multirow(2,0,1),Multirow(3,0,1),Multirow(4,0,1),Multirow(5,0,1),Multirow(6,0,1)]
-            multicolumlist = [Multicol(0,7,8)]
+            #multirowlist = [Multirow(0,0,1),Multirow(1,0,1),Multirow(2,0,1),Multirow(3,0,1),Multirow(4,0,1),Multirow(5,0,1),Multirow(6,0,1)]
+            multirowlist = [Multirow(0,0,1),Multirow(1,0,2),Multirow(4,0,1),Multirow(5,0,1),Multirow(6,0,1)]          
+            multicolumlist = [Multicol(0,7,8),Multicol(0,1,3)]
             createtable(doc,districts,fontsize="scriptsize", columncolor = \
                         [(0,"Solitude"),(1,"Solitude"),(2,"Solitude"),(3,"Solitude") \
                          ,(4,"Solitude"),(5,"Solitude"),(6,"Solitude"), \
@@ -728,12 +771,9 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
             directoryabbbevoelkerungserver = directoryabbbevoelkerung + "//" + filenameabb2 
 
             print(districtscopy.head())
-            #print(districtscopy.dtypes)
-            #district figure
             
             base = alt.Chart(
                 districtscopy, 
-                title="One-month percent change in CPI for All Urban Consumers (CPI-U), seasonally adjusted"
             ).properties(width=700)
             
             bars = base.mark_bar().encode(
@@ -743,21 +783,24 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
                 ),
                 y=alt.Y('bve2',
                 axis=alt.Axis(labels=True, title='Bevölkerungsentwicklung', format='%'),
-                scale=alt.Scale(domain=(-0.1, 0.4))
+                scale=alt.Scale(domain=[
+                    districtscopy['bve2'].min()-0.1,
+                    districtscopy['bve2'].max()+0.1
+                    ])
                 
                 ),
             )
-
             text = base.encode(
                 x=alt.X(" "),
                 y="bve2",
-                text='bve2'
+                text=alt.Text('bve2', format='.1%'),
             )
             
             textAbove = text.transform_filter(alt.datum.bve2 > 0).mark_text(
                 align='center',
                 baseline='middle',
                 dy=-10
+                
             )
             
             textBelow = text.transform_filter(alt.datum.bve2 < 0).mark_text(
@@ -776,7 +819,7 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
             doc.append(NoEscape(r'\end{figure}'))
 
 
-            doc.append(NoEscape(r'Die stärksten, prozentualen Zuwächse seit "+ str(year-11) + weisen die Stadtteile Tarup, Neustadt und Weiche  auf (s. Abb. \ref{fig:Abbildung_2}). Allein in Engelsby ist ein Rückgang der Einwohner*innenzahl zu verzeichnen.'))
+            doc.append(NoEscape(r'Die stärksten, prozentualen Zuwächse seit '+ str(year-11) + r' weisen die Stadtteile Tarup, Neustadt und Weiche  auf (s. Abb. \ref{fig:Abbildung_2}). Allein in Engelsby ist ein Rückgang der Einwohner*innenzahl zu verzeichnen.'))
             doc.append(NoEscape(r'\subsubsection{b) Geburtenentwicklung}'))
 
 
@@ -827,7 +870,7 @@ if __name__ == '__main__':
         driver = webdriver.Chrome()     
     
     # variable deklaration
-    year = 2020; 
+    year = 2021; 
     
     directory = os.path.dirname(__file__) + '\\Sozialatlas_generated'
     directoryabb1 = directory + '\\ABBILDUNGEN'
