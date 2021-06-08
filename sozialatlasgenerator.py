@@ -3,7 +3,7 @@ from pylatex import Document, Section, Subsection, Command, Package, \
 from pylatex.utils import NoEscape
 from pylatex.section import Chapter
 import  altair  as  alt 
-#import numpy as np
+import numpy as np
 import pandas as pd
 import os
 
@@ -171,6 +171,7 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
     addmrow = None # add multirow
     values = [] #add values to table
     i=0 #counter
+    h=0 #counterhhline
     c='|' #coloumns
     headercolor = ""
     setalign = False
@@ -308,7 +309,7 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
                     for j in range(0,addmcol.get_length()):
                         data = data + str(dfcopy.iat[row+i,columnind+j])
                         #change hhline color and size
-                        hhline[columnind+j].set_size(addmrow.get_length()-1)
+                        hhline[columnind+j].set_size(addmrow.get_length()-1-j)
                         hhline[columnind+j].set_color(getColorfromCommandString(cellcolor))
                         hhline[columnind+j].set_bordersamecolor(True)
                         if (i > 0)  and (i != addmrow.get_endrow()) :
@@ -359,8 +360,10 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
         
         
         table3.add_row(values) 
+        h=0
         for hhlinevalue in hhline:
-            if ((hhlinevalue.get_size()) > 0):
+            h=h+1
+            if ((hhlinevalue.get_size()) > 0) and (h != len(hhline)):
                 if (hhlinevalue.get_bordersamecolor()):
                     hhlinelatexcommand = hhlinelatexcommand + r">{\arrayrulecolor{" + hhlinevalue.get_color() + r"}}->{\arrayrulecolor{"+ hhlinevalue.get_color() +"}}|"
                 else:
@@ -368,6 +371,7 @@ def createtable(doc, df, addcoloumnnames = True, multcolumn=None, multrow=None, 
                 hhlinevalue.set_size_minusone()
                 if ((hhlinevalue.get_size()) == 0):
                     hhlinevalue.set_bordersamecolor(False)
+                    hhlinevalue.set_color("white")
             else:
                 hhlinelatexcommand = hhlinelatexcommand + r">{\arrayrulecolor{white}}-|"
         hhlinelatexcommand = hhlinelatexcommand + r"}"
@@ -572,7 +576,8 @@ def einleitung(doc, year):
 
 def impressum(doc):
     from datetime import date
-
+    emptyrow = '''
+'''
     today = date.today()
 
     # dd.mm.YY
@@ -598,38 +603,43 @@ def impressum(doc):
     doc.append(NoEscape(r'\restoregeometry'))
 
 def vorwort(doc, year):
+    emptyrow = '''
+'''
     doc.append(NoEscape(r'\newgeometry{asymmetric,outer=1.5cm,inner=1.5cm,top=1.5cm,bottom=1.5cm}'))
+    doc.append(NoEscape(emptyrow))
+    doc.append(NoEscape(emptyrow))
     doc.append(NoEscape(r'\textbf{\large{Vorwort}}'))
+    doc.append(NoEscape(emptyrow))
     doc.append(NoEscape(r'\begin{wrapfigure}{r}{5.5cm}'))
     doc.append(NoEscape(r'\centering'))
     doc.append(NoEscape(r'\includegraphics[scale=0.3]{ABBILDUNGEN/2020_Dezernentin_KWN.png}'))
     doc.append(NoEscape(r'\end{wrapfigure}'))
-    doc.append(NoEscape(r'\\'))
+    doc.append(NoEscape(emptyrow))
     doc.append(NoEscape(r'Liebe Leser*innen,'))
-    doc.append(NoEscape(r'\\'))
-    doc.append(NoEscape(r'\\'))
+    doc.append(NoEscape(emptyrow))
+    doc.append(NoEscape(emptyrow))
     doc.append(NoEscape(r'mit dem Sozialatlas '+str(year)+' legt der Fachbereich Soziales und Gesundheit der Stadtverwaltung Flensburg die 19. kleinräumige Fortschreibung von bevölkerungs- und sozialstrukturbezogenen Daten für die Stadt Flensburg vor. '))
-    doc.append(NoEscape(r'\\'))
+    doc.append(NoEscape(emptyrow))
     doc.append(NoEscape(r'Ziel der Flensburger Sozialberichterstattung ist es, die soziale Lebenswirklichkeit der Flensburger*innen mittels aussagekräftiger Kennzahlen abzubilden, um gemäß dem Leitspruch \glqq Daten für Taten\grqq{} empirisch fundierte Planungs- und Steuerungsprozesse zu initiieren und auf diese Weise zielgerichtetetes Planen und Handeln, auf Politik-, Verwaltungs- sowie auch Trägerebene, zu ermöglichen. '))
-    doc.append(NoEscape(r'\\'))
+    doc.append(NoEscape(emptyrow))
     doc.append(NoEscape(r'Die jährliche Fortschreibung sowie die kleinräumige Betrachtung der Daten erlauben das Sichtbarmachen demografischer und sozialstruktureller Entwicklungen. Indem bspw. Veränderungen in der Altersstruktur der Bevölkerung, der Erwerbstätigkeit oder bei dem Bezug von Sozialleistungen aufgezeigt werden, können soziale Änderungsprozesse registriert und ggf. gegensteuernde Maßnahmen eingeleitet werden.'))
-    doc.append(NoEscape(r'\\'))
+    doc.append(NoEscape(emptyrow))
     doc.append(NoEscape(r'Vor dem Hintergrund der Armutsdiskussion wird ein besonderes Augenmerk auf die Bezieher*innen von Leistungen nach den Sozialgesetzbüchern (SGB) II, III und XII gerichtet (s. Kap. 4 Soziale Sicherung). Es gibt mittlerweile zahlreiche empirische Befunde, die auf den Zusammenhang zwischen Einkommen, Bildung und Gesundheit hinweisen, die dabei in komplexen Wechselwirkungen stehen. Dabei zeigt sich immer wieder, dass Maßnahmen ihre Wirksamkeit nicht isoliert entfalten, sondern oft auch Auswirkungen in benachbarten Bereichen mit sich bringen. Angesichts verschiedener sozialer Problemlagen stellt dies eine große Herausforderung dar, die aber auch als Chance zu verstehen und wahrzunehmen ist. Denn wenn durch datenbasiertes und zielgerichtetes Handeln positive Entwicklungen angestoßen werden, kann davon ausgegangen werden, dass diese - wie eine positive Kettenreaktion - zu einem erweiterten Wirkungskreis einzelner Maßnahmen führen.'))
-    doc.append(NoEscape(r'\\'))
+    doc.append(NoEscape(emptyrow))
     doc.append(NoEscape(r'Soziale Wirklichkeit wird tagtäglich vor Ort, in den einzelnen Lebenswelten, ob in der Schule, bei der Arbeit oder im Verein, in den Sozialräumen dieser Stadt, in jedem der 13 Stadtteile geschaffen. Damit liegt ein bedeutender Anteil der Gestaltungshoheit sozialer Prozesse auch bei Ihnen, den Einwohner*innen dieser wunderbaren Stadt zwischen Himmel und Förde. Daher möchte ich Sie dazu einladen, die Lektüre dieses Berichtes zum Anlass zu nehmen, sich Ihrer Bedeutung und Ihres Wirkpotenzials als Mitglied einer größeren Verantwortungsgemeinschaft bewusst zu werden. Sie nehmen es bereits tagtäglich wahr, sei es in Form von Nachbarschaftshilfe, Vereinsarbeit oder in jeglicher anderen Form sozialen Engagements, und wir danken Ihnen an dieser Stelle ausdrücklich für Ihren täglichen Beitrag!'))
-    doc.append(NoEscape(r'\\'))
-    doc.append(NoEscape(r'\\'))
-    doc.append(NoEscape(r'\\'))
+    doc.append(NoEscape(emptyrow))
+    doc.append(NoEscape(emptyrow))
+    doc.append(NoEscape(emptyrow))
     doc.append(NoEscape(r'Flensburg, November '+ str(year)))
-    doc.append(NoEscape(r'\\'))
+    doc.append(NoEscape(emptyrow))
     doc.append(NoEscape(r'\begin{figure}[H]'))
     doc.append(NoEscape(r' \includegraphics[scale=0.25]{ABBILDUNGEN/Unterschrift_Dezernentin_KWN.png}'))
     doc.append(NoEscape(r'\end{figure}'))
     doc.append(NoEscape(r'Karen Welz-Nettlau,'))
     doc.append(NoEscape(r'Dezernentin für Jugend, Soziales, Gesundheit und Zentrale Dienste'))
-    doc.append(NoEscape(r'\\'))
+    doc.append(NoEscape(emptyrow))
     doc.append(NoEscape(r'\underline{\textcolor{red}{Hinweis zur Corona-Pandemie:}}Da diese Ausgabe sich auf die Datenlage zum Stichtag 31.12.2019 bezieht, können anhand der Datenauswertungen noch keine Hinweise auf die sozialen Auswirkungen der Covid-19-Pandemie abgeleitet werden. So werden frühestens mit dem Sozialatlas 2021 (auf Datenbasis zum 31.12.2020) erste Hinweise auf pandemiebedingte Auswirkungen sichtbar werden. Nichtsdestotrotz steht bereits zum heutigen Zeitpunkt fest, dass infolge der Pandemielage mit nachhaltigen, sozialen Auswirkungen zu rechnen ist. Es ist davon auszugehen, dass diese sich besonders in den Bereichen Beschäftigung und soziale Sicherung, aber bspw. auch bei den Hilfen zur Erziehung niederschlagen werden.'))
-    doc.append(NoEscape(r'\\'))
+    doc.append(NoEscape(emptyrow))
     doc.append(NoEscape(r'\afterpage{\aftergroup\restoregeometry}'))
     doc.append(NoEscape(r'\cleardoubleoddpage'))
     
@@ -644,12 +654,16 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
     :param doc: the document
     :type doc: :class:`pylatex.document.Document` instance
     """
+    emptyrow = '''
+'''
     with doc.create(Chapter('Bevölkerung', label="1Bevoelkerung")):
         with doc.create(Section('Bevölkerungsentwicklung')):
+            doc.append(NoEscape(emptyrow))
             doc.append(NoEscape(r'\marginnote{\emph{Einflüsse auf die ' +
                                 'Bevölkerungsentwicklung}}[0.2cm]'))
+            doc.append(NoEscape(emptyrow))
             doc.append(NoEscape(r'\fbox{\parbox{\columnwidth}{\emph{Die Bevölkerungsentwicklung ergibt sich aus der Differenz zwischen Geburten- und Sterberate in Verbindung mit dem Wanderungssaldo. Dieser wird von verschiedenen Faktoren beeinflusst: von globalen politischen Entwicklungen, Tendenzen auf dem Arbeitsmarkt (z.B. Anzahl der offenen und vermittelbaren Stellen), dem Wohnraumangebot (z.B. Mietpreise, freie Wohnkapazitäten, Wohnraumqualität), durch die Bildungsinfrastruktur (z.B. Angebot an Kindertagesstätten und Schulen bzw. Hochschulen), das Angebot an beruflichen Ausbildungen sowie durch persönliche oder familiäre Entscheidungen über den Hauptwohnsitz.}}}'))
-            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(emptyrow))
             doc.append(NoEscape(r' \marginnote{\scriptsize{*Hinweis: Um die Veränderungen besser sichtbar zu machen, beginnt die y-Achse bei 84.000 statt bei 0.}} [0.25cm]'))
             
             #######################################################Get Data Population ##########################################################
@@ -704,13 +718,11 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
             doc.append(NoEscape(r' \caption{\textbf{Bevölkerungsentwicklung '+ str(year-11) +' bis '+ str(year-1) +' (ohne Berücksichtigung Zensus 2011).}}'))
             doc.append(NoEscape(r' \label{fig:Abbildung_1}'))
             doc.append(NoEscape(r'\end{figure}'))
-
+            doc.append(NoEscape(emptyrow))
             doc.append(NoEscape(r'\marginnote{\emph{Bevölkerungszunahme seit dem Jahr '+ str(year-11) +', aktueller Stand: '+ str(currentpopulation) +'}}[0.2cm]'))
-
-            
+            doc.append(NoEscape(emptyrow))   
             currentpopulationstring = r'Zum 31.12.'+ str(year-1) + ' waren '+ str(currentpopulation) +' Personen mit ihrem Hauptwohnsitz in Flensburg gemeldet. ' 
-            highest_population = r'Das ist der höchste Bevölkerungsstand seit fast 60 Jahren. '
-            
+            highest_population = r'Das ist der höchste Bevölkerungsstand seit fast 60 Jahren. '     
             if (prevpopulation > currentpopulation):
                  compare_curr_prev_population = r"Im Vergleich zu "+ str(year-11) +" ist die Einwohnerzahl Flensburgs um "+ str(prevpopulation-currentpopulation) +" Personen gesunken (vgl. Abb. \\ref{fig:Abbildung_1}).";
             elif(prevpopulation < currentpopulation):
@@ -725,20 +737,20 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
             population_development = currentpopulationstring + highest_population + compare_curr_prev_population + average_population + prevyear
 
             doc.append(NoEscape(population_development))
-            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(emptyrow))
             
             doc.append(NoEscape(r'\fcolorbox{black}{PaleAqua}{\parbox{\columnwidth}{\footnotesize{\underline{Hinweis}: Für die Jahre ab 2011 hat das Statistische Amt für Hamburg und Schleswig-Holstein (Statistikamt Nord) auf Grundlage der Ergebnisse des Zensus 2011 eine deutlich unter den bisherigen Ergebnissen liegende Bevölkerungszahl (82.258 zum Stichtag 31.12.2011) förmlich festgesetzt. Das Flensburger Einwohnermelderegister wies im Vergleich eine Einwohner*innenzahl von 89.532 Personen aus. Die Stadt Flensburg hat 2015 gegen die Ergebnisse des Zensus geklagt. Die rechtliche Klärung des Sachverhaltes ist derzeit noch nicht abgeschlossen. Daher beziehen sich alle nachfolgenden Angaben zu den Bevölkerungszahlen weiterhin auf Datenbestände des städtischen Einwohnermelderegisters. Im Gegensatz zu den Zahlen des Statistikamts Nord können die Daten des Melderegisters zudem kleinräumig ausgewertet werden. Des Weiteren wird die Vergleichbarkeit mit den Daten der Sozialatlanten der Vorjahre gewährleistet.}}}'))
-            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(emptyrow))
             
             
             
             doc.append(NoEscape(r'\subsubsection{a) kleinräumige Entwicklung}'))
-          
+            doc.append(NoEscape(emptyrow))
             doc.append(NoEscape(r'\marginnote{\emph{Zunahme der Bevölkerung in fast allen Stadtteilen}}[0.25cm]')) 
-
+            doc.append(NoEscape(emptyrow))
             doc.append(NoEscape(r'Im Vergleich zu 2009 weisen fast alle Stadtteile ein kontinuierliches Wachstum auf (vgl. Tab. \ref{tab:Tabelle_1} und Abb. \ref{fig:Abbildung_2}). Es zeigen sich jedoch große Unterschiede hinsichtlich der Wachstumsraten in den einzelnen Stadtteilen. So ist für die Nordstadt, Mürwik und Tarup ein Zuwachs um mehr als 1.000 Einwohner*innen seit 2009 zu verzeichnen. Auch in den anderen Stadtteilen ist eine allgemeine Zunahme der Bevölkerungszahlen zu konstatieren. Lediglich in Engelsby ist die Einwohner*innenzahl zurückgegangen (-377 ggü. 2009). Im Vergleich zum Vorjahr sind insbesondere Mürwik (+286) und Tarup (+188) gewachsen. Am stärksten geht die Einwohner*innenzahl im Stadtteil Engelsby zurück (-94 ggü. 2018).'))            
-            doc.append(NoEscape(r'\\'))
-            doc.append(NoEscape(r'\\'))
+            doc.append(NoEscape(emptyrow))
+            doc.append(NoEscape(emptyrow))
             doc.append(NoEscape(r'\marginnote{\scriptsize{* Einwohner*innen mit Haupt- oder alleiniger Wohnung. Geringfügige Abweichungen ergeben sich durch nicht zuordenbare Personen.}}[1.25cm]'))
             
             #Districts
@@ -823,12 +835,11 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
             doc.append(NoEscape('\\caption{\\textbf{Bevölkerungsentwicklung in den Stadtteilen '+ str(year-11) +' bis '+ str(year-1)+'}}'))
             doc.append(NoEscape(r'\label{fig:Abbildung_2}'))
             doc.append(NoEscape(r'\end{figure}'))
-
-
+            doc.append(NoEscape(emptyrow))
             doc.append(NoEscape(r'Die stärksten, prozentualen Zuwächse seit '+ str(year-11) + r' weisen die Stadtteile Tarup, Neustadt und Weiche  auf (s. Abb. \ref{fig:Abbildung_2}). Allein in Engelsby ist ein Rückgang der Einwohner*innenzahl zu verzeichnen.'))
+            doc.append(NoEscape(emptyrow))
             doc.append(NoEscape(r'\subsubsection{b) Geburtenentwicklung}'))
-
-
+            doc.append(NoEscape(emptyrow))
             doc.append(NoEscape(r'\marginnote{\emph{Anstieg der Geburtenzahl in 2019}}[0.25cm]'))
             doc.append(NoEscape(r'In 2019 lag die Geburtenzahl bei 1.007 Geburten (s. Abb. \ref{fig:Abbildung_3}). Das sind 96 Geburten mehr als im Vorjahr (+10,5\% ggü. 2018). Im Vergleich zu 2009 ist die Zahl der Geburten um 23,0\% gestiegen (+188 Geburten). Zwischen 2009 und 2018 waren es durchschnittlich 843 Geburten pro Jahr. Die Geburtenzahlen der letzten 4 Jahren liegen deutlich darüber.'))
             doc.append(NoEscape(r'\marginnote{\scriptsize{*Hinweis: Um die Veränderungen besser sichtbar zu machen, beginnt die y-Achse bei 500 statt bei 0.}} [0.25cm]'))
@@ -876,11 +887,27 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
             doc.append(NoEscape(r' \caption{\textbf{Geburtenentwicklung '+ str(year-11) +' bis '+ str(year-1) +'.}}'))
             doc.append(NoEscape(r' \label{fig:Abbildung_3}'))
             doc.append(NoEscape(r'\end{figure}'))
-
+            doc.append(NoEscape(emptyrow))
+            doc.append(NoEscape('Die Geburtenquote stellt eine bedeutende demografische Kennziffer dar. Sie gibt die Anzahl der Geburten je 1.000 Frauen im Alter zwischen 15 und unter 45 Jahren an. '))
+            doc.append(NoEscape('In 2019 liegt die Geburtenquote in Flensburg bei 51,4. Vergleichsweise hohe Geburtenquoten weisen Mürwik (64,5), Tarup (62,2) und die Nordstadt (60,8) auf. Die niedrigsten Geburtenquoten sind in den Stadtteilen Sandberg (32,7) und Altstadt (39,1) zu verzeichnen.'))
+            doc.append(NoEscape(emptyrow))
             
-            doc.append(NoEscape(''))
+            birthratedistricts = pd.read_csv(datadirectory+"//Population//Birth-RateDistricts.csv", sep = ";",encoding = "ISO-8859-1", header=None)
+            #replace NAs
+            birthratedistricts = birthratedistricts.fillna("")
+            #Latex correct %
+            birthratedistricts = birthratedistricts.replace(regex=r'%', value='\%')
+            print(birthratedistricts)
             
-            doc.append(NoEscape(''))
+            multirowlist = [Multirow(0,0,2),Multirow(1,0,1),Multirow(3,0,1),Multirow(5,0,1),Multirow(7,0,1),Multirow(9,0,1),Multirow(11,0,1)]         
+            multicolumlist = [Multicol(0,1,2),Multicol(0,3,4),Multicol(0,5,6),Multicol(0,7,8),Multicol(0,9,10),Multicol(0,11,12),Multicol(0,13,14),Multicol(1,13,14)]
+            createtable(doc,birthratedistricts,fontsize="tiny", columncolor = \
+                        [(0,"Solitude"),(1,"Solitude"),(2,"Solitude"),(3,"Solitude") \
+                         ,(4,"Solitude"),(5,"Solitude"),(6,"Solitude"), \
+                         (7,"Solitude"),(8,"Solitude"),(9,"Solitude") \
+                         ,(10,"Solitude"),(11,"Solitude"),(12,"Solitude"), \
+                         (13,"TropicalBlue"),(14,"TropicalBlue"),], framecolor = \
+                            "white", align = [(0,"l")], rowstretch=1.5, fontweightrowlist = [0,15], addcoloumnnames= False, multrow = multirowlist, multcolumn = multicolumlist, label = "Tabelle_1")
             
             doc.append(NoEscape(''))
             doc.append(NoEscape(''))
