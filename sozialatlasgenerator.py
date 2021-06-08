@@ -1,5 +1,5 @@
 from pylatex import Document, Section, Subsection, Command, Package, \
-    MultiRow, Tabular, MultiColumn
+    MultiRow, Tabular, MultiColumn, NewLine
 from pylatex.utils import NoEscape
 from pylatex.section import Chapter
 import  altair  as  alt 
@@ -513,57 +513,61 @@ def ATitle(doc):
     doc.append(NoEscape(r"\end{flushleft}"))    
 
 def einleitung(doc, year):
+     emptyrow = '''
+'''
+     doc.append(NoEscape(r'\newpage'))
      doc.append(NoEscape(r"\textbf{\Large{Einleitung}}"))
-     doc.append(NoEscape(r'\\'))
+     doc.append(NoEscape(emptyrow))
      doc.append(NoEscape(r"\marginnote{\emph{Ziel: kontinuierliche Beobachtung der sozialen Lage}}[0.25cm]"))
-     doc.append(NoEscape(r'\\'))
+     doc.append(NoEscape(emptyrow))
      doc.append(NoEscape(r"\emph{Mit dem Sozialatlas "+str(year)+" liegt die neunzehnte kleinräumige Fortschreibung von Sozialstrukturdaten für die Stadt Flensburg und ihre 13 Stadtteile vor. Das Ziel ist eine differenzierte Beobachtung von relevanten Indikatoren, die Aufschluss über die soziale Lage in Flensburg geben. Der Sozialatlas liefert damit wichtige Grundinformationen für Planungen, wie z.B. in der Jugendhilfe, im Bereich älterer Menschen oder der Stadtplanung.}"))
-     doc.append(NoEscape(r'\\'))
+     doc.append(NoEscape(emptyrow))
      doc.append(NoEscape(r"\marginnote{\emph{Orientierung nach Stadtteilen}}[0.25cm]"))
-     doc.append(NoEscape(r'\\'))
+     doc.append(NoEscape(emptyrow))
      doc.append(NoEscape(r"\emph{Der Sozialatlas ist eine dauerhafte Aufgabe. Die Orientierung nach Sozialräumen – in diesem Fall nach Stadtteilen – bedeutet, dass kleinräumige, sozioökonomische und demografische Daten im Hinblick auf die soziale Lebensrealität der Bewohner*innen untersucht und analysiert werden. Durch die Fortschreibung können langfristig kleinräumige Veränderungen nachgezeichnet werden, z.B. in der Altersstruktur der Bevölkerung, der Erwerbstätigkeit oder im Bezug von Sozialleistungen. Dabei erfolgt die Darstellung der Entwicklung der Bevölkerungsdaten in einem 10-Jahresvergleich. Die themenspezifischen Informationen werden in der Regel in einem 5-Jahresrückblick betrachtet.}"))
-     doc.append(NoEscape(r'\\'))
+     doc.append(NoEscape(emptyrow))
      doc.append(NoEscape(r"\marginnote{\emph{Stichtag 31.12."+str(year-1)+"}}[0.25cm]"))
-     doc.append(NoEscape(r'\\'))
+     doc.append(NoEscape(emptyrow))
      doc.append(NoEscape(r"\emph{Der Sozialatlas zum Stichtag 31.12."+str(year-1)+" ist in fünf Kapitel unterteilt: 1. Bevölkerung, 2. Arbeitsmarkt und Beschäftigung, 3. Wohnen, 4. Soziale Sicherung und 5. Hilfen zur Erziehung. Den Kapiteln ist eine Zusammenfassung der wichtigsten Ergebnisse vorangestellt. Die umrandeten Textblöcke weisen auf allgemeingültige Informationen hin. Am Ende befinden sich kurze Steckbriefe für die Stadt Flensburg und die 13 Stadtteile.} "))
-     doc.append(NoEscape(r'\\'))
+     doc.append(NoEscape(emptyrow))
      doc.append(NoEscape(r"\emph{Sofern nicht anders angegeben, handelt es sich bei allen Abbildungen und Tabellen um Darstellungen des Fachbereichs Soziales und Gesundheit auf Basis von Daten der Statistikstelle der Stadt Flensburg. Daten für die Jahre vor 2015 wurden in der Regel aus vorhergehenden Sozialatlanten übernommen.}"))
-     doc.append(NoEscape(r'\\'))
+     doc.append(NoEscape(emptyrow))
      doc.append(NoEscape(r"\textbf{\emph{Bevölkerung}}"))
-     doc.append(NoEscape(r'\\'))
+     doc.append(NoEscape(emptyrow))
      doc.append(NoEscape(r"\marginnote{\emph{Zensus nicht berücksichtigt}}[0.25cm]"))
-     doc.append(NoEscape(r'\\'))
+     doc.append(NoEscape(emptyrow))
      doc.append(NoEscape(r"\emph{Die Klage der Stadt Flensburg (aus 2015) gegen das Ergebnis des Zensus von 2011 befindet sich weiterhin in der rechtlichen Klärung. Daher werden auch weiterhin Daten auf Basis des städtischen Melderegisters verwendet (bis auf externe Quellen und Verweise). Im Gegensatz zu den Zahlen des Statistischen Amts für Hamburg und Schleswig-Holstein können die Daten des Melderegisters zudem kleinräumig ausgewertet werden. Des Weiteren wird die Vergleichbarkeit zu den Daten der vorherigen Sozialatlanten gewahrt.}"))
-     doc.append(NoEscape(r'\\'))
+     doc.append(NoEscape(emptyrow))
      doc.append(NoEscape(r"\emph{Im Vordergrund steht die Entwicklung und strukturelle Zusammensetzung der Bevölkerung nach Alter, Geschlecht und Herkunft. Darüber hinaus dargestellt sind die Geburtenentwicklung sowie wichtige Kennzahlen zur demografischen Entwicklung. Des Weiteren enthält der Sozialatlas Angaben zum Aufenthaltsstatus der in Flensburg lebenden ausländischen Einwohner*innen und zu den Einbürgerungen.}"))
-     doc.append(NoEscape(r'\\'))
+     doc.append(NoEscape(emptyrow))
      doc.append(NoEscape(r"\textbf{\emph{ und Beschäftigung}}"))
-     doc.append(NoEscape(r'\\'))
+     doc.append(NoEscape(emptyrow))
      doc.append(NoEscape(r"\marginnote{\emph{sozialversicherungspflichtige Beschäftigung und Arbeitslosigkeit}}[0.25cm]"))
-     doc.append(NoEscape(r'\\'))
+     doc.append(NoEscape(emptyrow))
      doc.append(NoEscape(r"\emph{Kleinräumige Daten sind für die Themen Arbeitslosigkeit und sozialversicherungspflichtig Beschäftigte verfügbar. Datengrundlage ist die Statistik der Bundesagentur für Arbeit.}"))
+     doc.append(NoEscape(emptyrow))
      doc.append(NoEscape(r"\newpage"))
-     doc.append(NoEscape(''))
+     doc.append(NoEscape(emptyrow))
      doc.append(NoEscape(r"\textbf{\emph{Wohnen}}"))
-     doc.append(NoEscape(r'\\'))
+     doc.append(NoEscape(emptyrow))
      doc.append(NoEscape(r"\marginnote{\emph{Wohngeld und Wohnungs-hilfefälle}}[0.25cm]"))
-     doc.append(NoEscape(r'\\'))
+     doc.append(NoEscape(emptyrow))
      doc.append(NoEscape(r"\emph{Im Sozialatlas werden Daten zum Bezug von Wohngeld und über Wohnungshilfefälle ausgewertet. Sie werden vom Bürgerbüro bzw. der Fachstelle für Wohnhilfen und Schuldnerberatung zur Verfügung gestellt.}"))
-     doc.append(NoEscape(r'\\'))
+     doc.append(NoEscape(emptyrow))
      doc.append(NoEscape(r"\textbf{\emph{Soziale Sicherung}}"))
-     doc.append(NoEscape(r'\\'))
+     doc.append(NoEscape(emptyrow))
      doc.append(NoEscape(r"\marginnote{\emph{Leistungen nach SGB II, III und XII}}[0.25cm]"))
-     doc.append(NoEscape(r'\\'))
+     doc.append(NoEscape(emptyrow))
      doc.append(NoEscape(r'\emph{Der Abschnitt enthält detaillierte Angaben zu den Bezieher*innen von Leistungen nach den Sozialgesetzbüchern (SGB) II, III und XII. Dargestellt werden im Wesentlichen die drei Altersgruppen „unter 15 Jahren“, „15 bis unter 65 Jahren“ und der Personen im Alter von „65 Jahren und älter". Vor dem Hintergrund der Armutsdiskussion ist der Blick insbesondere darauf gerichtet, wie viele Personen im Bezug staatlicher Leistungen leben und damit überwiegend deutlich weniger Einkommen zur Verfügung haben als der Durchschnitt.}'))
-     doc.append(NoEscape(r'\\'))
+     doc.append(NoEscape(emptyrow))
      doc.append(NoEscape(r"\textbf{\emph{Hilfen zur Erziehung}}"))
-     doc.append(NoEscape(r'\\'))
+     doc.append(NoEscape(emptyrow))
      doc.append(NoEscape(r"\marginnote{\emph{HzE-Daten für die Gesamtstadt}}[0.25cm]"))
-     doc.append(NoEscape(r'\\'))
+     doc.append(NoEscape(emptyrow))
      doc.append(NoEscape(r"\emph{Die Darstellung der Hilfen zur Erziehung (HzE) beschränkt sich auf die Entwicklung der Fallzahlen für die Gesamtstadt. Als Datengrundlage sind ausschließlich zahlbare Leistungsfälle verfügbar.}"))
-     doc.append(NoEscape(r'\\'))
+     doc.append(NoEscape(emptyrow))
      doc.append(NoEscape(r"\textbf{\emph{Stadtteil-Steckbriefe}}"))
-     doc.append(NoEscape(r'\\'))
+     doc.append(NoEscape(emptyrow))
      doc.append(NoEscape(r"\emph{Die Steckbriefe fassen die wesentlichen Ergebnisse für die einzelnen Stadtteile übersichtlich zusammen. Neben dem aktuellen Trend ist eine Vergleichszahl des aktuellen Jahres für die Stadt Flensburg eingepflegt. Die Trendpfeile stellen einen Vergleich des aktuellen Wertes mit dem Durchschnitt der letzten drei Jahre dar, eine Veränderung um mehr als 10\% des Durchschnittswertes wird dabei als relevant erachtet.}"))
 
 def impressum(doc):
@@ -667,8 +671,7 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
             currentpopulation = populationofelevenyears['population'][(populationofelevenyears['year'] == year-1)].values[0]
             prevpopulation = populationofelevenyears['population'][(populationofelevenyears['year'] == year-11)].values[0]
             prevyear = populationofelevenyears['population'][(populationofelevenyears['year'] == year-2)].values[0]
-            
-            print(populationofelevenyears)
+
             ################################################Population Chart####################################
             bars = alt.Chart(populationofelevenyears).mark_bar(size = 20, color='#4F81BD').encode(
             alt.X('year:O',
@@ -756,9 +759,8 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
 
             #print(str(districts))
             #multirowlist = [Multirow(1,0,1),Multirow(2,0,1),Multirow(3,0,1),Multirow(4,0,1),Multirow(5,0,1),Multirow(6,0,1),Multirow(7,0,1),Multirow(8,0,1)]
-            #multirowlist = [Multirow(0,0,1),Multirow(1,0,1),Multirow(2,0,1),Multirow(3,0,1),Multirow(4,0,1),Multirow(5,0,1),Multirow(6,0,1)]
-            multirowlist = [Multirow(0,0,1),Multirow(1,0,2),Multirow(4,0,1),Multirow(5,0,1),Multirow(6,0,1)]          
-            multicolumlist = [Multicol(0,7,8),Multicol(0,1,3)]
+            multirowlist = [Multirow(0,0,1),Multirow(1,0,1),Multirow(2,0,1),Multirow(3,0,1),Multirow(4,0,1),Multirow(5,0,1),Multirow(6,0,1)]         
+            multicolumlist = [Multicol(0,7,8)]
             createtable(doc,districts,fontsize="scriptsize", columncolor = \
                         [(0,"Solitude"),(1,"Solitude"),(2,"Solitude"),(3,"Solitude") \
                          ,(4,"Solitude"),(5,"Solitude"),(6,"Solitude"), \
@@ -827,9 +829,55 @@ def bevoelkerung(doc, year,directoryabbbevoelkerung,directoryabbbevoelkerungserv
             doc.append(NoEscape(r'\subsubsection{b) Geburtenentwicklung}'))
 
 
-            doc.append(NoEscape(''))
-            doc.append(NoEscape(''))
-            doc.append(NoEscape(''))
+            doc.append(NoEscape(r'\marginnote{\emph{Anstieg der Geburtenzahl in 2019}}[0.25cm]'))
+            doc.append(NoEscape(r'In 2019 lag die Geburtenzahl bei 1.007 Geburten (s. Abb. \ref{fig:Abbildung_3}). Das sind 96 Geburten mehr als im Vorjahr (+10,5\% ggü. 2018). Im Vergleich zu 2009 ist die Zahl der Geburten um 23,0\% gestiegen (+188 Geburten). Zwischen 2009 und 2018 waren es durchschnittlich 843 Geburten pro Jahr. Die Geburtenzahlen der letzten 4 Jahren liegen deutlich darüber.'))
+            doc.append(NoEscape(r'\marginnote{\scriptsize{*Hinweis: Um die Veränderungen besser sichtbar zu machen, beginnt die y-Achse bei 500 statt bei 0.}} [0.25cm]'))
+            
+             #######################################################Get Data Birthdayrate data ##########################################################
+            birthrate = pd.read_csv(datadirectory+"//Population//Birth-Rate.csv", sep = ";")
+
+            filenameabb1 = 'Geburtentwicklung '+ str(year-11) +' bis '+ str(year-1) +'.png'
+            pathabb1 = directoryabbbevoelkerung + '//' + filenameabb1
+            directoryabbbevoelkerungserver = directoryabbbevoelkerung + "//" + filenameabb1            
+        
+            filteryears1 = (birthrate['year'] >= year-11) 
+            
+            birthrateofelevenyears = birthrate[filteryears1]
+
+            ################################################Birth rate Chart####################################
+            bars = alt.Chart(birthrateofelevenyears).mark_bar(size = 20, color='#4F81BD').encode(
+            alt.X('year:O',
+                  axis=alt.Axis(labels=True, title='Jahr'),
+                  #scale=alt.Scale(domain=(year-11, year-1))
+                  ),
+            alt.Y('birthrate:Q',
+                axis=alt.Axis(labels=True, title='Anzahl der Geburten'),
+                                    scale=alt.Scale(domain=[
+                                    birthrateofelevenyears['birthrate'].min()*0.7,
+                                    birthrateofelevenyears['birthrate'].max()*1.1
+                                    ])
+                ),
+            )
+            
+            text = bars.mark_text(
+                align='center',
+                baseline='bottom',
+                #dx=3  # Nudges text to right so it doesn't appear on top of the bar
+                dy = -10
+            ).encode(
+                text='birthrate'
+            )
+            
+            (bars + text).properties(width=500).save(directoryabbbevoelkerungserver)
+        
+            ################################################BirthRate Chart####################################
+            doc.append(NoEscape(r'\begin{figure}[H]'))
+            doc.append(NoEscape(r' \includegraphics[width=\textwidth]{'+pathabb1+'}'))
+            doc.append(NoEscape(r' \caption{\textbf{Geburtenentwicklung '+ str(year-11) +' bis '+ str(year-1) +'.}}'))
+            doc.append(NoEscape(r' \label{fig:Abbildung_3}'))
+            doc.append(NoEscape(r'\end{figure}'))
+
+            
             doc.append(NoEscape(''))
             
             doc.append(NoEscape(''))
