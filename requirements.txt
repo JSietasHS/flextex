@@ -1,7 +1,7 @@
-pylatex = 1.4.1
-streamlit = 0.89.0
-numpy = 1.2
-tkinter = 8.6
-st_quill = 0.0.3
-sqlalchemy = 1.4.7
-plotly = 5.1.0
+pylatex == 1.4.1
+streamlit == 0.89.0
+numpy == 1.2
+tkinter == 8.6
+st_quill == 0.0.3
+sqlalchemy == 1.4.7
+plotly == 5.1.0
