@@ -1,8 +1,7 @@
-Python 2.7 or 3.3+
-PyLaTeX 1.4.1
-Altair 4.1.0
-Altair_Saver 0.5.0
-ChromeDriver 90.0.4430.24
-
-Strawberry Perl 5.32.1.1
-MiKTeX 21.2
+pylatex = 1.4.1
+streamlit = 0.89.0
+numpy = 1.2
+tkinter = 8.6
+st_quill = 0.0.3
+sqlalchemy = 1.4.7
+plotly = 5.1.0
