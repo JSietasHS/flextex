@@ -1,6 +1,6 @@
 pylatex == 1.4.1
 streamlit 
-numpy == 1.2
+numpy == 1.20.1
 tkinter == 8.6
 st_quill == 0.0.3
 sqlalchemy == 1.4.7
